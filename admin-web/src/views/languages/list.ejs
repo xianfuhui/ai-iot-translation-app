@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="vi">
+<%- include('../partials/head', { title: 'Ngôn ngữ' }) %>
+<body>
+<div class="app-shell">
+  <%- include('../partials/sidebar', { active: 'languages', admin: admin }) %>
+
+  <main class="main">
+    <div class="page-header">
+      <div>
+        <div class="page-eyebrow">Quản trị hệ thống</div>
+        <h1>Ngôn ngữ & Model</h1>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2>Thêm ngôn ngữ mới</h2>
+      <form method="POST" action="/languages">
+        <div class="form-row">
+          <div class="form-group" style="max-width: 140px;">
+            <label for="code">Mã ngôn ngữ</label>
+            <input type="text" id="code" name="code" placeholder="vd: en" required />
+          </div>
+          <div class="form-group">
+            <label for="name">Tên hiển thị</label>
+            <input type="text" id="name" name="name" placeholder="vd: Tiếng Anh" required />
+          </div>
+        </div>
+        <button type="submit" class="btn btn-primary">Thêm ngôn ngữ</button>
+      </form>
+    </div>
+
+    <% if (items.length === 0) { %>
+      <div class="panel"><div class="empty-state">Chưa có ngôn ngữ nào được cấu hình</div></div>
+    <% } %>
+
+    <% items.forEach(l => { %>
+      <% const models = modelsByLanguage[l.code] || []; %>
+      <% const voskModels = models.filter(m => m.type === 'vosk'); %>
+      <% const mlkitModels = models.filter(m => m.type === 'mlkit'); %>
+
+      <div class="panel">
+        <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom: 12px;">
+          <div>
+            <h2 style="display:flex; align-items:center; gap:8px;">
+              <%= l.name %> <span class="mono" style="font-size:12px; color:var(--text-muted); font-weight:400;">(<%= l.code %>)</span>
+              <span class="badge <%= l.isActive ? 'badge-active' : 'badge-inactive' %>"><%= l.isActive ? 'Hoạt động' : 'Tắt' %></span>
+            </h2>
+          </div>
+          <div style="display:flex; gap:6px;">
+            <form class="inline-form" method="POST" action="/languages/<%= l._id %>/update">
+              <input type="hidden" name="code" value="<%= l.code %>" />
+              <input type="hidden" name="name" value="<%= l.name %>" />
+              <input type="hidden" name="isActive" value="<%= !l.isActive %>" />
+              <button type="submit" class="btn btn-ghost btn-sm"><%= l.isActive ? 'Tắt ngôn ngữ' : 'Bật ngôn ngữ' %></button>
+            </form>
+            <form class="inline-form" method="POST" action="/languages/<%= l._id %>/delete" onsubmit="return confirm('Xóa ngôn ngữ này? Các model liên quan vẫn còn, chỉ ngôn ngữ bị xóa.');">
+              <button type="submit" class="btn btn-danger btn-sm">Xóa ngôn ngữ</button>
+            </form>
+          </div>
+        </div>
+
+        <div class="grid grid-2">
+          <!-- Vosk models -->
+          <div>
+            <h3 style="font-size: 13px; color: var(--teal); margin-bottom: 8px;">🎙 Model Vosk (Speech-to-Text)</h3>
+            <% if (voskModels.length === 0) { %>
+              <div class="empty-state" style="padding: 16px; font-size:12px;">Chưa có model Vosk cho ngôn ngữ này</div>
+            <% } else { %>
+              <% voskModels.forEach(m => { %>
+                <%- include('../partials/model_row', { m: m }) %>
+              <% }) %>
+            <% } %>
+            <details style="margin-top:8px;">
+              <summary style="cursor:pointer; font-size:12px; color:var(--teal);">+ Thêm model Vosk</summary>
+              <%- include('../partials/model_form', { type: 'vosk', languageCode: l.code }) %>
+            </details>
+          </div>
+
+          <!-- ML Kit models -->
+          <div>
+            <h3 style="font-size: 13px; color: var(--gold); margin-bottom: 8px;">🌐 Model ML Kit (Dịch offline)</h3>
+            <% if (mlkitModels.length === 0) { %>
+              <div class="empty-state" style="padding: 16px; font-size:12px;">Chưa có model ML Kit cho ngôn ngữ này</div>
+            <% } else { %>
+              <% mlkitModels.forEach(m => { %>
+                <%- include('../partials/model_row', { m: m }) %>
+              <% }) %>
+            <% } %>
+            <details style="margin-top:8px;">
+              <summary style="cursor:pointer; font-size:12px; color:var(--gold);">+ Thêm model ML Kit</summary>
+              <%- include('../partials/model_form', { type: 'mlkit', languageCode: l.code }) %>
+            </details>
+          </div>
+        </div>
+      </div>
+    <% }) %>
+  </main>
+</div>
+</body>
+</html>
