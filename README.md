@@ -27,11 +27,43 @@ Lingua translates text and speech **on the device** (no network needed after a o
 
 ## 📸 Screenshots
 
-| Translate screen: iOS and Android prototype |
-|---|
-| ![Lingua UI prototype](docs/images/prototype-translate.png) |
+### Mobile app (UI prototype)
 
-Interactive UI prototypes (single-file HTML, no build step) are in [`docs/prototype/`](docs/prototype/); open `prototype_v2.html` in a browser. The database diagram is in [Architecture](#-architecture).
+The Flutter client follows the interactive prototype in [`docs/prototype/`](docs/prototype/) (single-file HTML, open `prototype_v2.html` in a browser). Five screens cover the whole flow: translate with on-device models, AI practice, word notebook, flashcards and profile.
+
+![Lingua mobile flow](docs/images/mobile-flow.png)
+
+| Sign in | Translate + tap a word to save | Save to notebook |
+|---|---|---|
+| <img src="docs/images/mobile-login.png" width="240" alt="Sign in"> | <img src="docs/images/mobile-translate.png" width="240" alt="Translate"> | <img src="docs/images/mobile-save-word.png" width="240" alt="Save word"> |
+
+iOS and Android differ only in voice input (Vosk speech-to-text is Android-only):
+
+![iOS vs Android](docs/images/prototype-translate.png)
+
+### Admin console (Node.js + EJS, seeded demo data)
+
+| Sign in | Dashboard |
+|---|---|
+| ![Admin sign in](docs/images/admin-login.png) | ![Dashboard](docs/images/admin-dashboard.png) |
+| Admin-only access; non-admin accounts are rejected | User growth, saved words, total translations, top words |
+
+| Users | Languages and offline models |
+|---|---|
+| ![Users](docs/images/admin-users.png) | ![Languages and models](docs/images/admin-languages.png) |
+| Search, promote/demote, lock/unlock, delete (transactional cascade) | Per-language Vosk and ML Kit model catalog with file upload |
+
+| System vocabulary | Translation history |
+|---|---|
+| ![System vocabulary](docs/images/admin-vocabulary.png) | ![History](docs/images/admin-history.png) |
+| Curated word bank with Excel import | Text, speech and conversation records across all users |
+
+| Settings |
+|---|
+| ![Settings](docs/images/admin-settings.png) |
+| Gemini API key and model are stored server-side and shown masked |
+
+The database diagram is in [Architecture](#-architecture).
 
 ## 🛠 Tech Stack
 
