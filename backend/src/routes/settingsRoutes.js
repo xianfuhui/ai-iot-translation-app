@@ -1,6 +1,11 @@
 const express = require('express');
 const router = express.Router();
-const { getGemini, updateGemini, resetGemini, testGemini } = require('../controllers/settingsController');
+const {
+  getGemini,
+  updateGemini,
+  resetGemini,
+  testGemini,
+} = require('../controllers/settingsController');
 const { protect, adminOnly } = require('../middleware/auth');
 
 router.use(protect, adminOnly);

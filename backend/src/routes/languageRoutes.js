@@ -1,6 +1,11 @@
 const express = require('express');
 const router = express.Router();
-const { getLanguages, createLanguage, updateLanguage, deleteLanguage } = require('../controllers/languageController');
+const {
+  getLanguages,
+  createLanguage,
+  updateLanguage,
+  deleteLanguage,
+} = require('../controllers/languageController');
 const { protect, adminOnly } = require('../middleware/auth');
 
 router.get('/', protect, getLanguages); // Mobile: chọn ngôn ngữ dịch

@@ -55,7 +55,9 @@ const deleteLanguage = async (req, res, next) => {
     const [inModels, inVocab, inHistory] = await Promise.all([
       Model.countDocuments({ languageCode: code }),
       Vocabulary.countDocuments({ $or: [{ sourceLanguage: code }, { targetLanguage: code }] }),
-      TranslationHistory.countDocuments({ $or: [{ sourceLanguage: code }, { targetLanguage: code }] }),
+      TranslationHistory.countDocuments({
+        $or: [{ sourceLanguage: code }, { targetLanguage: code }],
+      }),
     ]);
 
     const totalRefs = inModels + inVocab + inHistory;

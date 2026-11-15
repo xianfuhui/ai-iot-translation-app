@@ -40,7 +40,9 @@ const updateGemini = async (req, res, next) => {
       return res.status(400).json({ message: 'Vui lòng nhập API key hoặc tên model' });
     }
     if (apiKey && (apiKey.length < 20 || /\s/.test(apiKey))) {
-      return res.status(400).json({ message: 'API key không hợp lệ (quá ngắn hoặc có khoảng trắng)' });
+      return res
+        .status(400)
+        .json({ message: 'API key không hợp lệ (quá ngắn hoặc có khoảng trắng)' });
     }
     if (model && !/^[\w.\-]+$/.test(model)) {
       return res.status(400).json({ message: 'Tên model không hợp lệ' });
@@ -73,10 +75,14 @@ const testGemini = async (req, res) => {
   try {
     const apiKey = (req.body.apiKey || '').trim() || undefined;
     const model = (req.body.model || '').trim() || undefined;
-    await callGemini([{ role: 'user', parts: [{ text: 'Trả lời đúng một từ: OK' }] }], { apiKey, model });
+    await callGemini([{ role: 'user', parts: [{ text: 'Trả lời đúng một từ: OK' }] }], {
+      apiKey,
+      model,
+    });
     res.json({ ok: true, message: 'Kết nối Gemini thành công' });
   } catch (error) {
-    if (error.code === 'NO_GEMINI_KEY') return res.status(400).json({ ok: false, message: error.message });
+    if (error.code === 'NO_GEMINI_KEY')
+      return res.status(400).json({ ok: false, message: error.message });
     const detail = error.response?.data?.error?.message || error.message;
     res.status(400).json({ ok: false, message: `Gemini từ chối: ${detail}` });
   }

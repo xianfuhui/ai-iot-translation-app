@@ -25,22 +25,36 @@ const Model = require('../src/models/Model');
 
 // ===== random có seed — tái lập được =====
 let _seed = 20260912;
-const rnd = () => ((_seed = (_seed * 1103515245 + 12345) % 2147483648) / 2147483648);
+const rnd = () => (_seed = (_seed * 1103515245 + 12345) % 2147483648) / 2147483648;
 const rint = (min, max) => min + Math.floor(rnd() * (max - min + 1));
 const pick = (arr) => arr[Math.floor(rnd() * arr.length)];
-const daysAgo = (d, jitterMin = 0) =>
-  new Date(Date.now() - d * 86400000 - jitterMin * 60000);
+const daysAgo = (d, jitterMin = 0) => new Date(Date.now() - d * 86400000 - jitterMin * 60000);
 
 const LEARNER_EMAILS = Array.from({ length: 15 }, (_, i) => `learner${i + 1}@example.com`);
 const LEARNER_NAMES = [
-  'Phạm Minh Châu', 'Lê Quốc Bảo', 'Vũ Thu Hà', 'Đặng Gia Huy', 'Bùi Ngọc Lan',
-  'Hồ Thanh Sơn', 'Đỗ Mai Phương', 'Ngô Đức Thịnh', 'Trịnh Khánh Vy', 'Lý Hoàng Nam',
-  'Phan Bích Ngọc', 'Dương Tuấn Kiệt', 'Mai Thùy Dung', 'Tạ Quang Minh', 'Chu Diễm Quỳnh',
+  'Phạm Minh Châu',
+  'Lê Quốc Bảo',
+  'Vũ Thu Hà',
+  'Đặng Gia Huy',
+  'Bùi Ngọc Lan',
+  'Hồ Thanh Sơn',
+  'Đỗ Mai Phương',
+  'Ngô Đức Thịnh',
+  'Trịnh Khánh Vy',
+  'Lý Hoàng Nam',
+  'Phan Bích Ngọc',
+  'Dương Tuấn Kiệt',
+  'Mai Thùy Dung',
+  'Tạ Quang Minh',
+  'Chu Diễm Quỳnh',
 ];
 
 // ===== kho câu (EN->VI là chính, kèm EN->JA và VI->EN) =====
 const SENT_EN_VI = [
-  ['Could you recommend a good local restaurant?', 'Bạn có thể giới thiệu một nhà hàng địa phương ngon không?'],
+  [
+    'Could you recommend a good local restaurant?',
+    'Bạn có thể giới thiệu một nhà hàng địa phương ngon không?',
+  ],
   ['I would like to book a room for two nights.', 'Tôi muốn đặt một phòng trong hai đêm.'],
   ['How much does this ticket cost?', 'Vé này giá bao nhiêu?'],
   ['The meeting has been postponed to next Monday.', 'Cuộc họp đã bị hoãn sang thứ Hai tuần sau.'],
@@ -50,7 +64,10 @@ const SENT_EN_VI = [
   ['Can you speak more slowly, please?', 'Bạn có thể nói chậm lại được không?'],
   ['What time does the museum open?', 'Bảo tàng mở cửa lúc mấy giờ?'],
   ['I have been learning Vietnamese for three months.', 'Tôi đã học tiếng Việt được ba tháng.'],
-  ['The weather forecast says it will rain tomorrow.', 'Dự báo thời tiết nói ngày mai trời sẽ mưa.'],
+  [
+    'The weather forecast says it will rain tomorrow.',
+    'Dự báo thời tiết nói ngày mai trời sẽ mưa.',
+  ],
   ['Could you help me carry this luggage?', 'Bạn có thể giúp tôi xách hành lý này không?'],
   ['My flight was delayed by two hours.', 'Chuyến bay của tôi bị trễ hai tiếng.'],
   ['This dish is too spicy for me.', 'Món này quá cay với tôi.'],
@@ -58,7 +75,10 @@ const SENT_EN_VI = [
   ['Let me check my calendar first.', 'Để tôi kiểm tra lịch của mình trước đã.'],
 ];
 const SENT_EN_JA = [
-  ['Nice to meet you, I look forward to working together.', 'はじめまして、これからよろしくお願いします。'],
+  [
+    'Nice to meet you, I look forward to working together.',
+    'はじめまして、これからよろしくお願いします。',
+  ],
   ['Could you say that one more time?', 'もう一度言っていただけますか。'],
   ['I will arrive at the station at nine.', '九時に駅に着きます。'],
   ['This is my first time visiting Tokyo.', '東京を訪れるのは初めてです。'],
@@ -71,52 +91,133 @@ const SENT_VI_EN = [
 
 // ===== kho từ (đủ rộng để mỗi user bốc không trùng) =====
 const WORDS = [
-  ['ability', 'khả năng'], ['achieve', 'đạt được'], ['advice', 'lời khuyên'], ['ancient', 'cổ xưa'],
-  ['arrive', 'đến nơi'], ['borrow', 'mượn'], ['bravery', 'lòng dũng cảm'], ['calendar', 'lịch'],
-  ['celebrate', 'ăn mừng'], ['choice', 'lựa chọn'], ['climate', 'khí hậu'], ['comfort', 'sự thoải mái'],
-  ['courage', 'can đảm'], ['curious', 'tò mò'], ['decision', 'quyết định'], ['delicious', 'ngon'],
-  ['discover', 'khám phá'], ['distance', 'khoảng cách'], ['effort', 'nỗ lực'], ['emotion', 'cảm xúc'],
-  ['engineer', 'kỹ sư'], ['environment', 'môi trường'], ['exchange', 'trao đổi'], ['familiar', 'quen thuộc'],
-  ['freedom', 'tự do'], ['friendly', 'thân thiện'], ['generous', 'hào phóng'], ['grateful', 'biết ơn'],
-  ['harvest', 'thu hoạch'], ['holiday', 'kỳ nghỉ'], ['honest', 'trung thực'], ['imagine', 'tưởng tượng'],
-  ['improve', 'cải thiện'], ['journey', 'hành trình'], ['kindness', 'lòng tốt'], ['language', 'ngôn ngữ'],
-  ['lecture', 'bài giảng'], ['library', 'thư viện'], ['luggage', 'hành lý'], ['medicine', 'thuốc'],
-  ['memory', 'ký ức'], ['mountain', 'ngọn núi'], ['neighbor', 'hàng xóm'], ['opinion', 'ý kiến'],
-  ['patient', 'kiên nhẫn'], ['peaceful', 'yên bình'], ['practice', 'luyện tập'], ['promise', 'lời hứa'],
-  ['quality', 'chất lượng'], ['receipt', 'hóa đơn'], ['schedule', 'lịch trình'], ['science', 'khoa học'],
-  ['seaside', 'bờ biển'], ['strength', 'sức mạnh'], ['success', 'thành công'], ['sunrise', 'bình minh'],
-  ['teacher', 'giáo viên'], ['tradition', 'truyền thống'], ['vacation', 'kỳ nghỉ dài'], ['weather', 'thời tiết'],
+  ['ability', 'khả năng'],
+  ['achieve', 'đạt được'],
+  ['advice', 'lời khuyên'],
+  ['ancient', 'cổ xưa'],
+  ['arrive', 'đến nơi'],
+  ['borrow', 'mượn'],
+  ['bravery', 'lòng dũng cảm'],
+  ['calendar', 'lịch'],
+  ['celebrate', 'ăn mừng'],
+  ['choice', 'lựa chọn'],
+  ['climate', 'khí hậu'],
+  ['comfort', 'sự thoải mái'],
+  ['courage', 'can đảm'],
+  ['curious', 'tò mò'],
+  ['decision', 'quyết định'],
+  ['delicious', 'ngon'],
+  ['discover', 'khám phá'],
+  ['distance', 'khoảng cách'],
+  ['effort', 'nỗ lực'],
+  ['emotion', 'cảm xúc'],
+  ['engineer', 'kỹ sư'],
+  ['environment', 'môi trường'],
+  ['exchange', 'trao đổi'],
+  ['familiar', 'quen thuộc'],
+  ['freedom', 'tự do'],
+  ['friendly', 'thân thiện'],
+  ['generous', 'hào phóng'],
+  ['grateful', 'biết ơn'],
+  ['harvest', 'thu hoạch'],
+  ['holiday', 'kỳ nghỉ'],
+  ['honest', 'trung thực'],
+  ['imagine', 'tưởng tượng'],
+  ['improve', 'cải thiện'],
+  ['journey', 'hành trình'],
+  ['kindness', 'lòng tốt'],
+  ['language', 'ngôn ngữ'],
+  ['lecture', 'bài giảng'],
+  ['library', 'thư viện'],
+  ['luggage', 'hành lý'],
+  ['medicine', 'thuốc'],
+  ['memory', 'ký ức'],
+  ['mountain', 'ngọn núi'],
+  ['neighbor', 'hàng xóm'],
+  ['opinion', 'ý kiến'],
+  ['patient', 'kiên nhẫn'],
+  ['peaceful', 'yên bình'],
+  ['practice', 'luyện tập'],
+  ['promise', 'lời hứa'],
+  ['quality', 'chất lượng'],
+  ['receipt', 'hóa đơn'],
+  ['schedule', 'lịch trình'],
+  ['science', 'khoa học'],
+  ['seaside', 'bờ biển'],
+  ['strength', 'sức mạnh'],
+  ['success', 'thành công'],
+  ['sunrise', 'bình minh'],
+  ['teacher', 'giáo viên'],
+  ['tradition', 'truyền thống'],
+  ['vacation', 'kỳ nghỉ dài'],
+  ['weather', 'thời tiết'],
 ];
 
 const SYSTEM_WORDS_RICH = [
   // du lịch
-  ['reservation', 'đặt chỗ', '/ˌrezərˈveɪʃn/', 'du lịch'], ['souvenir', 'quà lưu niệm', '/ˌsuːvəˈnɪr/', 'du lịch'],
-  ['itinerary', 'lịch trình chuyến đi', '/aɪˈtɪnəreri/', 'du lịch'], ['currency', 'tiền tệ', '/ˈkɜːrənsi/', 'du lịch'],
-  ['departure', 'khởi hành', '/dɪˈpɑːrtʃər/', 'du lịch'], ['sightseeing', 'tham quan', '/ˈsaɪtsiːɪŋ/', 'du lịch'],
-  ['customs', 'hải quan', '/ˈkʌstəmz/', 'du lịch'], ['boarding pass', 'thẻ lên máy bay', null, 'du lịch'],
+  ['reservation', 'đặt chỗ', '/ˌrezərˈveɪʃn/', 'du lịch'],
+  ['souvenir', 'quà lưu niệm', '/ˌsuːvəˈnɪr/', 'du lịch'],
+  ['itinerary', 'lịch trình chuyến đi', '/aɪˈtɪnəreri/', 'du lịch'],
+  ['currency', 'tiền tệ', '/ˈkɜːrənsi/', 'du lịch'],
+  ['departure', 'khởi hành', '/dɪˈpɑːrtʃər/', 'du lịch'],
+  ['sightseeing', 'tham quan', '/ˈsaɪtsiːɪŋ/', 'du lịch'],
+  ['customs', 'hải quan', '/ˈkʌstəmz/', 'du lịch'],
+  ['boarding pass', 'thẻ lên máy bay', null, 'du lịch'],
   // công việc
-  ['negotiation', 'đàm phán', '/nɪˌɡoʊʃiˈeɪʃn/', 'công việc'], ['colleague', 'đồng nghiệp', '/ˈkɑːliːɡ/', 'công việc'],
-  ['presentation', 'bài thuyết trình', '/ˌpriːzenˈteɪʃn/', 'công việc'], ['agenda', 'chương trình họp', '/əˈdʒendə/', 'công việc'],
-  ['feedback', 'phản hồi', '/ˈfiːdbæk/', 'công việc'], ['contract', 'hợp đồng', '/ˈkɑːntrækt/', 'công việc'],
-  ['promotion', 'thăng chức', '/prəˈmoʊʃn/', 'công việc'], ['overtime', 'tăng ca', '/ˈoʊvərtaɪm/', 'công việc'],
+  ['negotiation', 'đàm phán', '/nɪˌɡoʊʃiˈeɪʃn/', 'công việc'],
+  ['colleague', 'đồng nghiệp', '/ˈkɑːliːɡ/', 'công việc'],
+  ['presentation', 'bài thuyết trình', '/ˌpriːzenˈteɪʃn/', 'công việc'],
+  ['agenda', 'chương trình họp', '/əˈdʒendə/', 'công việc'],
+  ['feedback', 'phản hồi', '/ˈfiːdbæk/', 'công việc'],
+  ['contract', 'hợp đồng', '/ˈkɑːntrækt/', 'công việc'],
+  ['promotion', 'thăng chức', '/prəˈmoʊʃn/', 'công việc'],
+  ['overtime', 'tăng ca', '/ˈoʊvərtaɪm/', 'công việc'],
   // giao tiếp
-  ['appreciate', 'trân trọng', '/əˈpriːʃieɪt/', 'giao tiếp'], ['apologize', 'xin lỗi', '/əˈpɑːlədʒaɪz/', 'giao tiếp'],
-  ['congratulations', 'chúc mừng', '/kənˌɡrætʃəˈleɪʃnz/', 'giao tiếp'], ['excuse me', 'xin phép / cho hỏi', null, 'giao tiếp'],
-  ['pleasure', 'hân hạnh', '/ˈpleʒər/', 'giao tiếp'], ['introduce', 'giới thiệu', '/ˌɪntrəˈduːs/', 'giao tiếp'],
-  ['invitation', 'lời mời', '/ˌɪnvɪˈteɪʃn/', 'giao tiếp'], ['farewell', 'tạm biệt', '/ˌferˈwel/', 'giao tiếp'],
+  ['appreciate', 'trân trọng', '/əˈpriːʃieɪt/', 'giao tiếp'],
+  ['apologize', 'xin lỗi', '/əˈpɑːlədʒaɪz/', 'giao tiếp'],
+  ['congratulations', 'chúc mừng', '/kənˌɡrætʃəˈleɪʃnz/', 'giao tiếp'],
+  ['excuse me', 'xin phép / cho hỏi', null, 'giao tiếp'],
+  ['pleasure', 'hân hạnh', '/ˈpleʒər/', 'giao tiếp'],
+  ['introduce', 'giới thiệu', '/ˌɪntrəˈduːs/', 'giao tiếp'],
+  ['invitation', 'lời mời', '/ˌɪnvɪˈteɪʃn/', 'giao tiếp'],
+  ['farewell', 'tạm biệt', '/ˌferˈwel/', 'giao tiếp'],
   // học tập
-  ['assignment', 'bài tập', '/əˈsaɪnmənt/', 'học tập'], ['deadline', 'hạn nộp', '/ˈdedlaɪn/', 'học tập'],
-  ['knowledge', 'kiến thức', '/ˈnɑːlɪdʒ/', 'học tập'], ['scholarship', 'học bổng', '/ˈskɑːlərʃɪp/', 'học tập'],
-  ['semester', 'học kỳ', '/sɪˈmestər/', 'học tập'], ['graduate', 'tốt nghiệp', '/ˈɡrædʒueɪt/', 'học tập'],
-  ['research', 'nghiên cứu', '/rɪˈsɜːrtʃ/', 'học tập'], ['certificate', 'chứng chỉ', '/sərˈtɪfɪkət/', 'học tập'],
+  ['assignment', 'bài tập', '/əˈsaɪnmənt/', 'học tập'],
+  ['deadline', 'hạn nộp', '/ˈdedlaɪn/', 'học tập'],
+  ['knowledge', 'kiến thức', '/ˈnɑːlɪdʒ/', 'học tập'],
+  ['scholarship', 'học bổng', '/ˈskɑːlərʃɪp/', 'học tập'],
+  ['semester', 'học kỳ', '/sɪˈmestər/', 'học tập'],
+  ['graduate', 'tốt nghiệp', '/ˈɡrædʒueɪt/', 'học tập'],
+  ['research', 'nghiên cứu', '/rɪˈsɜːrtʃ/', 'học tập'],
+  ['certificate', 'chứng chỉ', '/sərˈtɪfɪkət/', 'học tập'],
 ];
 
 const AI_TOPICS = [
-  ['Luyện phỏng vấn xin việc', 'Hãy đóng vai nhà tuyển dụng, phỏng vấn tôi bằng tiếng Anh nhé.', 'Great! Let us start. Tell me a little bit about yourself.'],
-  ['Sửa ngữ pháp đoạn văn', 'Fix this paragraph: I goes to school every day and study English very hardly.', 'Here is the corrected version: "I go to school every day and study English very hard."'],
-  ['Hỏi về thì hiện tại hoàn thành', 'Khi nào dùng thì hiện tại hoàn thành vậy?', 'Thì hiện tại hoàn thành dùng khi hành động xảy ra trong quá khứ nhưng còn liên quan đến hiện tại.'],
-  ['Luyện hội thoại đặt phòng', 'Role-play a hotel check-in conversation with me.', 'Welcome to our hotel! Do you have a reservation with us tonight?'],
-  ['Từ vựng chủ đề công sở', 'Cho tôi 5 từ vựng tiếng Anh hay dùng trong cuộc họp.', 'Sure! agenda, minutes, action item, follow up, and wrap up. Would you like example sentences?'],
+  [
+    'Luyện phỏng vấn xin việc',
+    'Hãy đóng vai nhà tuyển dụng, phỏng vấn tôi bằng tiếng Anh nhé.',
+    'Great! Let us start. Tell me a little bit about yourself.',
+  ],
+  [
+    'Sửa ngữ pháp đoạn văn',
+    'Fix this paragraph: I goes to school every day and study English very hardly.',
+    'Here is the corrected version: "I go to school every day and study English very hard."',
+  ],
+  [
+    'Hỏi về thì hiện tại hoàn thành',
+    'Khi nào dùng thì hiện tại hoàn thành vậy?',
+    'Thì hiện tại hoàn thành dùng khi hành động xảy ra trong quá khứ nhưng còn liên quan đến hiện tại.',
+  ],
+  [
+    'Luyện hội thoại đặt phòng',
+    'Role-play a hotel check-in conversation with me.',
+    'Welcome to our hotel! Do you have a reservation with us tonight?',
+  ],
+  [
+    'Từ vựng chủ đề công sở',
+    'Cho tôi 5 từ vựng tiếng Anh hay dùng trong cuộc họp.',
+    'Sure! agenda, minutes, action item, follow up, and wrap up. Would you like example sentences?',
+  ],
 ];
 
 async function run() {
@@ -125,7 +226,9 @@ async function run() {
 
   const user1 = await User.findOne({ email: 'user1@example.com' });
   if (!user1) {
-    console.error('❌ Chưa có dữ liệu nền — chạy `npm run seed:data` trước rồi hãy chạy seed:rich.');
+    console.error(
+      '❌ Chưa có dữ liệu nền — chạy `npm run seed:data` trước rồi hãy chạy seed:rich.'
+    );
     process.exit(1);
   }
 
@@ -137,8 +240,24 @@ async function run() {
   await Language.deleteMany({ code: { $in: extraLangs.map((l) => l.code) } });
   await Language.insertMany(extraLangs);
   const extraModels = [
-    { type: 'mlkit', name: 'ML Kit Chinese', languageCode: 'zh', identifier: 'zh', sizeMB: 30, description: 'Tự tải khi cần, ~30MB', isActive: true },
-    { type: 'mlkit', name: 'ML Kit French', languageCode: 'fr', identifier: 'fr', sizeMB: 30, description: 'Tự tải khi cần, ~30MB', isActive: true },
+    {
+      type: 'mlkit',
+      name: 'ML Kit Chinese',
+      languageCode: 'zh',
+      identifier: 'zh',
+      sizeMB: 30,
+      description: 'Tự tải khi cần, ~30MB',
+      isActive: true,
+    },
+    {
+      type: 'mlkit',
+      name: 'ML Kit French',
+      languageCode: 'fr',
+      identifier: 'fr',
+      sizeMB: 30,
+      description: 'Tự tải khi cần, ~30MB',
+      isActive: true,
+    },
   ];
   await Model.deleteMany({ type: 'mlkit', identifier: { $in: ['zh', 'fr'] } });
   await Model.insertMany(extraModels);
@@ -149,9 +268,12 @@ async function run() {
   await SystemVocabulary.deleteMany({ word: { $in: SYSTEM_WORDS_RICH.map((w) => w[0]) } });
   await SystemVocabulary.insertMany(
     SYSTEM_WORDS_RICH.map(([word, meaning, phonetic, category]) => ({
-      word, meaning, category,
+      word,
+      meaning,
+      category,
       phonetic: phonetic || undefined,
-      sourceLanguage: 'en', targetLanguage: 'vi',
+      sourceLanguage: 'en',
+      targetLanguage: 'vi',
       createdBy: admin?._id ?? null,
     }))
   );
@@ -172,9 +294,13 @@ async function run() {
     LEARNER_EMAILS.map((email, i) => {
       const created = daysAgo(rint(3, 60), rint(0, 720));
       return {
-        fullName: LEARNER_NAMES[i], email, password: passwordHash, role: 'user',
+        fullName: LEARNER_NAMES[i],
+        email,
+        password: passwordHash,
+        role: 'user',
         isActive: i % 7 !== 6, // ~2 tài khoản bị khóa cho thống kê admin
-        createdAt: created, updatedAt: created,
+        createdAt: created,
+        updatedAt: created,
         lastLoginAt: daysAgo(rint(0, 5), rint(0, 720)),
       };
     })
@@ -189,11 +315,16 @@ async function run() {
       const [word, meaning] = pool.splice(Math.floor(rnd() * pool.length), 1)[0];
       const created = daysAgo(rint(0, 90), rint(0, 720));
       vocabDocs.push({
-        user: uid, word, meaning, sourceLanguage: 'en', targetLanguage: 'vi',
+        user: uid,
+        word,
+        meaning,
+        sourceLanguage: 'en',
+        targetLanguage: 'vi',
         source: rnd() < 0.6 ? 'conversation' : 'manual',
         inFlashcard: rnd() < 0.45,
         phonetic: rnd() < 0.5 ? `/ˈ${word.slice(0, 4)}…/` : undefined,
-        createdAt: created, updatedAt: created,
+        createdAt: created,
+        updatedAt: created,
       });
     }
   };
@@ -212,24 +343,62 @@ async function run() {
       const roll = rnd();
       if (roll < 0.7) {
         const [s, t] = pick(SENT_EN_VI);
-        histDocs.push({ user: uid, sourceLanguage: 'en', targetLanguage: 'vi', sourceText: s, translatedText: t, type: 'text', createdAt: created, updatedAt: created });
+        histDocs.push({
+          user: uid,
+          sourceLanguage: 'en',
+          targetLanguage: 'vi',
+          sourceText: s,
+          translatedText: t,
+          type: 'text',
+          createdAt: created,
+          updatedAt: created,
+        });
       } else if (roll < 0.82) {
         const [s, t] = pick(SENT_VI_EN);
-        histDocs.push({ user: uid, sourceLanguage: 'vi', targetLanguage: 'en', sourceText: s, translatedText: t, type: 'speech', createdAt: created, updatedAt: created });
+        histDocs.push({
+          user: uid,
+          sourceLanguage: 'vi',
+          targetLanguage: 'en',
+          sourceText: s,
+          translatedText: t,
+          type: 'speech',
+          createdAt: created,
+          updatedAt: created,
+        });
       } else if (roll < 0.9) {
         const [s, t] = pick(SENT_EN_JA);
-        histDocs.push({ user: uid, sourceLanguage: 'en', targetLanguage: 'ja', sourceText: s, translatedText: t, type: 'ai_chat', createdAt: created, updatedAt: created });
+        histDocs.push({
+          user: uid,
+          sourceLanguage: 'en',
+          targetLanguage: 'ja',
+          sourceText: s,
+          translatedText: t,
+          type: 'ai_chat',
+          createdAt: created,
+          updatedAt: created,
+        });
       } else {
         const n = rint(2, 6);
         const segments = Array.from({ length: n }, (_, i) => {
           const [s, t] = pick(SENT_EN_VI);
-          return { sourceText: s, translatedText: t, at: new Date(created.getTime() + i * rint(8, 30) * 1000) };
+          return {
+            sourceText: s,
+            translatedText: t,
+            at: new Date(created.getTime() + i * rint(8, 30) * 1000),
+          };
         });
         histDocs.push({
-          user: uid, sourceLanguage: 'en', targetLanguage: 'vi', type: 'conversation', segments,
-          startedAt: segments[0].at, endedAt: segments[n - 1].at,
-          summary: rnd() < 0.3 ? `Phiên hội thoại ${n} lượt nói về giao tiếp hằng ngày.` : undefined,
-          createdAt: segments[n - 1].at, updatedAt: segments[n - 1].at,
+          user: uid,
+          sourceLanguage: 'en',
+          targetLanguage: 'vi',
+          type: 'conversation',
+          segments,
+          startedAt: segments[0].at,
+          endedAt: segments[n - 1].at,
+          summary:
+            rnd() < 0.3 ? `Phiên hội thoại ${n} lượt nói về giao tiếp hằng ngày.` : undefined,
+          createdAt: segments[n - 1].at,
+          updatedAt: segments[n - 1].at,
         });
       }
     }
@@ -237,12 +406,20 @@ async function run() {
   for (const u of learners) addHistoryFor(u._id, rint(80, 250));
   // user1: dọn lô rich cũ (nhận diện theo pool câu của seedRich) rồi thêm 30
   const richSentences = [...SENT_EN_VI, ...SENT_EN_JA, ...SENT_VI_EN].map((p) => p[0]);
-  await TranslationHistory.deleteMany({ user: user1._id, $or: [{ sourceText: { $in: richSentences } }, { 'segments.0.sourceText': { $in: richSentences } }] });
+  await TranslationHistory.deleteMany({
+    user: user1._id,
+    $or: [
+      { sourceText: { $in: richSentences } },
+      { 'segments.0.sourceText': { $in: richSentences } },
+    ],
+  });
   addHistoryFor(user1._id, 30);
   for (let i = 0; i < histDocs.length; i += 500) {
     await TranslationHistory.insertMany(histDocs.slice(i, i + 500));
   }
-  console.log(`✅ +${histDocs.length} bản ghi lịch sử (trải 120 ngày, đủ text/speech/ai_chat/conversation)`);
+  console.log(
+    `✅ +${histDocs.length} bản ghi lịch sử (trải 120 ngày, đủ text/speech/ai_chat/conversation)`
+  );
 
   // ===== 6. Hội thoại AI (~30) =====
   const convDocs = [];
@@ -254,13 +431,26 @@ async function run() {
       const turns = rint(1, 4);
       const messages = [];
       for (let t = 0; t < turns; t++) {
-        messages.push({ role: 'user', content: t === 0 ? q : 'Cho tôi thêm một ví dụ nữa nhé.', createdAt: created, updatedAt: created });
-        messages.push({ role: 'assistant', content: t === 0 ? a : 'Sure! Here is another example for you to practice with.', createdAt: created, updatedAt: created });
+        messages.push({
+          role: 'user',
+          content: t === 0 ? q : 'Cho tôi thêm một ví dụ nữa nhé.',
+          createdAt: created,
+          updatedAt: created,
+        });
+        messages.push({
+          role: 'assistant',
+          content: t === 0 ? a : 'Sure! Here is another example for you to practice with.',
+          createdAt: created,
+          updatedAt: created,
+        });
       }
       convDocs.push({
-        user: u._id, title, messages,
+        user: u._id,
+        title,
+        messages,
         summary: rnd() < 0.4 ? `Hội thoại luyện tập: ${title.toLowerCase()}.` : undefined,
-        createdAt: created, updatedAt: created,
+        createdAt: created,
+        updatedAt: created,
       });
     }
   }
@@ -268,7 +458,15 @@ async function run() {
   console.log(`✅ +${convDocs.length} hội thoại AI`);
 
   console.log('\n🎉 Enrich xong. Số liệu hiện tại:');
-  for (const m of [User, Language, Model, Vocabulary, SystemVocabulary, TranslationHistory, AIConversation]) {
+  for (const m of [
+    User,
+    Language,
+    Model,
+    Vocabulary,
+    SystemVocabulary,
+    TranslationHistory,
+    AIConversation,
+  ]) {
     console.log(`   ${m.collection.name}: ${await m.estimatedDocumentCount()}`);
   }
 

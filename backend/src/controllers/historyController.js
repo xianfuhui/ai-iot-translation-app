@@ -7,7 +7,16 @@ const { callGemini, truncateForLlm } = require('../utils/gemini');
 // - type 'conversation': 1 phiên dịch trực tiếp Bắt đầu/Dừng, gộp nhiều lượt -> cần segments (mảng)
 const createHistory = async (req, res, next) => {
   try {
-    const { sourceLanguage, targetLanguage, sourceText, translatedText, type, segments, startedAt, endedAt } = req.body;
+    const {
+      sourceLanguage,
+      targetLanguage,
+      sourceText,
+      translatedText,
+      type,
+      segments,
+      startedAt,
+      endedAt,
+    } = req.body;
 
     if (type === 'conversation') {
       if (!Array.isArray(segments) || segments.length === 0) {
@@ -57,7 +66,10 @@ const getMyHistory = async (req, res, next) => {
 // @route   DELETE /api/history/:id
 const deleteMyHistory = async (req, res, next) => {
   try {
-    const record = await TranslationHistory.findOneAndDelete({ _id: req.params.id, user: req.user._id });
+    const record = await TranslationHistory.findOneAndDelete({
+      _id: req.params.id,
+      user: req.user._id,
+    });
     if (!record) return res.status(404).json({ message: 'Không tìm thấy bản ghi lịch sử' });
     res.json({ message: 'Đã xóa bản ghi lịch sử' });
   } catch (error) {
@@ -71,7 +83,8 @@ const deleteMyHistory = async (req, res, next) => {
 const deleteMySegment = async (req, res, next) => {
   try {
     const at = Number(req.query.at);
-    if (!Number.isFinite(at)) return res.status(400).json({ message: 'Thiếu mốc thời gian của lượt nói' });
+    if (!Number.isFinite(at))
+      return res.status(400).json({ message: 'Thiếu mốc thời gian của lượt nói' });
     const record = await TranslationHistory.findOne({ _id: req.params.id, user: req.user._id });
     if (!record) return res.status(404).json({ message: 'Không tìm thấy bản ghi lịch sử' });
     if (record.type !== 'conversation' || !record.segments) {
@@ -122,7 +135,9 @@ const summarizeHistory = async (req, res, next) => {
     res.json({ id: record._id, summary, truncated });
   } catch (error) {
     if (error.response) {
-      return res.status(502).json({ message: 'Lỗi khi gọi LLM để tóm tắt', detail: error.response.data });
+      return res
+        .status(502)
+        .json({ message: 'Lỗi khi gọi LLM để tóm tắt', detail: error.response.data });
     }
     next(error);
   }

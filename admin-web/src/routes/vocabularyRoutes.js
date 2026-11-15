@@ -17,7 +17,9 @@ const upload = multer({
 router.get('/vocabulary', async (req, res, next) => {
   try {
     const { search = '', category = '' } = req.query;
-    const { data } = await apiClient(req).get('/vocabulary/system', { params: { search, category } });
+    const { data } = await apiClient(req).get('/vocabulary/system', {
+      params: { search, category },
+    });
     res.render('vocabulary/list', { items: data, search, category, importResult: null });
   } catch (err) {
     next(err);
@@ -27,9 +29,16 @@ router.get('/vocabulary', async (req, res, next) => {
 // Thêm từ vựng hệ thống mới (form đơn)
 router.post('/vocabulary', async (req, res, next) => {
   try {
-    const { word, meaning, sourceLanguage, targetLanguage, category, phonetic, audioUrl } = req.body;
+    const { word, meaning, sourceLanguage, targetLanguage, category, phonetic, audioUrl } =
+      req.body;
     await apiClient(req).post('/vocabulary/system', {
-      word, meaning, sourceLanguage, targetLanguage, category, phonetic, audioUrl,
+      word,
+      meaning,
+      sourceLanguage,
+      targetLanguage,
+      category,
+      phonetic,
+      audioUrl,
     });
     res.redirect('/vocabulary');
   } catch (err) {
@@ -42,14 +51,18 @@ router.post('/vocabulary/import', upload.single('file'), async (req, res, next) 
   try {
     const result = await apiUpload(req, 'post', '/vocabulary/system/import', {}, req.file);
     const { search = '', category = '' } = req.query;
-    const { data: items } = await apiClient(req).get('/vocabulary/system', { params: { search, category } });
+    const { data: items } = await apiClient(req).get('/vocabulary/system', {
+      params: { search, category },
+    });
     res.render('vocabulary/list', { items, search, category, importResult: result });
   } catch (err) {
     // Hiển thị lỗi inline thay vì crash
     const { search = '', category = '' } = req.query;
     let items = [];
     try {
-      const { data } = await apiClient(req).get('/vocabulary/system', { params: { search, category } });
+      const { data } = await apiClient(req).get('/vocabulary/system', {
+        params: { search, category },
+      });
       items = data;
     } catch (_) {}
     const importResult = {
@@ -64,9 +77,16 @@ router.post('/vocabulary/import', upload.single('file'), async (req, res, next) 
 // Sửa từ vựng hệ thống
 router.post('/vocabulary/:id/update', async (req, res, next) => {
   try {
-    const { word, meaning, sourceLanguage, targetLanguage, category, phonetic, audioUrl } = req.body;
+    const { word, meaning, sourceLanguage, targetLanguage, category, phonetic, audioUrl } =
+      req.body;
     await apiClient(req).put(`/vocabulary/system/${req.params.id}`, {
-      word, meaning, sourceLanguage, targetLanguage, category, phonetic, audioUrl,
+      word,
+      meaning,
+      sourceLanguage,
+      targetLanguage,
+      category,
+      phonetic,
+      audioUrl,
     });
     res.redirect('/vocabulary');
   } catch (err) {

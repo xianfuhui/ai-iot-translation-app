@@ -16,7 +16,10 @@ async function apiUpload(req, method, path, fields, file, fileField = 'file') {
     if (value !== undefined && value !== null) form.append(key, value);
   });
   if (file) {
-    form.append(fileField, file.buffer, { filename: file.originalname, contentType: file.mimetype });
+    form.append(fileField, file.buffer, {
+      filename: file.originalname,
+      contentType: file.mimetype,
+    });
   }
 
   const headers = {

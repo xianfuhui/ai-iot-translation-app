@@ -1,6 +1,11 @@
 const express = require('express');
 const router = express.Router();
-const { getModels, createModel, updateModel, deleteModel } = require('../controllers/modelController');
+const {
+  getModels,
+  createModel,
+  updateModel,
+  deleteModel,
+} = require('../controllers/modelController');
 const { protect, adminOnly } = require('../middleware/auth');
 const { uploadModelFile } = require('../middleware/upload');
 

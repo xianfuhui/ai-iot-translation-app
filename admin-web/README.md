@@ -1,57 +1,37 @@
-# Web Admin (NodeJS) - Quản trị hệ thống Dịch ngôn ngữ & Từ vựng
+# Admin Web
 
-Ứng dụng web server-rendered (Express + EJS) dành riêng cho **Admin**, gọi tới Backend API (`backend/`) đã xây dựng trước đó.
+Server-rendered admin console (Express + EJS) for Lingua. It calls the [backend API](../backend) and keeps the admin's JWT in a server-side session, so the browser only holds a session cookie.
 
-## 1. Yêu cầu
-
-- Đã chạy được `backend/` (xem README trong đó) tại `http://localhost:5000`
-- Đã có ít nhất 1 tài khoản admin (chạy `npm run seed:admin` trong `backend/`)
-
-## 2. Cài đặt & chạy
+## Run
 
 ```bash
-cd admin-web
-cp .env.example .env      # chỉnh BACKEND_API_URL nếu backend chạy port khác
+cp .env.example .env     # set BACKEND_API_URL and SESSION_SECRET
 npm install
-npm run dev                # hoặc: npm start
+npm run dev              # or: npm start  (http://localhost:4000)
 ```
 
-Mặc định chạy tại: **http://localhost:4000**
+The backend must be running and at least one admin must exist (`npm run seed:admin` in `backend/`). Only accounts with `role: "admin"` can sign in.
 
-## 3. Đăng nhập
+## Pages
 
-Vào `http://localhost:4000/login`, dùng email/mật khẩu admin đã seed (mặc định `admin@example.com` / `Admin@123` nếu bạn chưa đổi trong `.env` của backend).
-
-> Chỉ tài khoản có `role: "admin"` mới đăng nhập được vào trang này — nếu dùng tài khoản `user` (từ Mobile) sẽ bị từ chối.
-
-## 4. Các trang / chức năng
-
-| Trang | Route | Chức năng |
+| Page | Route | What it does |
 |---|---|---|
-| Tổng quan | `/dashboard` | Thống kê người dùng + từ vựng (POM: xem thống kê) |
-| Người dùng | `/users` | Tìm kiếm, đổi vai trò, khóa/mở khóa, xóa tài khoản |
-| Kho từ vựng | `/vocabulary` | Thêm/xóa từ vựng hệ thống, tìm kiếm theo chủ đề |
-| Lịch sử dịch | `/history` | Xem & xóa lịch sử dịch thuật toàn hệ thống, lọc theo ngày |
-| Ngôn ngữ & Model | `/languages` | Thêm/bật-tắt/xóa ngôn ngữ; mỗi ngôn ngữ có mục quản lý model Vosk (STT) và ML Kit (dịch) riêng — thêm/sửa/xóa, **upload file model trực tiếp** (.zip, .tflite...) hoặc dán link tải ngoài |
-| Cài đặt | `/settings` | Admin tự nhập/đổi **Gemini API key** + model (lưu mã hóa trong DB, có nút thử kết nối), và **đổi mật khẩu** tài khoản admin |
+| Dashboard | `/dashboard` | User and vocabulary statistics |
+| Users | `/users` | Search, change role, lock/unlock, delete |
+| Vocabulary | `/vocabulary` | Manage the system word bank, filter by topic |
+| History | `/history` | View and delete system-wide translation history, filter by date |
+| Languages and models | `/languages` | Enable/disable languages; per-language Vosk and ML Kit models with file upload or external link |
+| Settings | `/settings` | Gemini API key and model (stored encrypted, with a connection test) and admin password change |
 
-## 5. Kiến trúc
+## Structure
 
 ```
 admin-web/
-├── server.js                 # Entry point, session, gắn route
-├── public/css/style.css      # Giao diện (thiết kế "sổ tay từ điển")
+├── server.js                 # entry point: session, routes
+├── public/css/style.css
 └── src/
-    ├── middleware/requireAuth.js
-    ├── services/apiClient.js  # axios gọi backend, tự đính JWT từ session
-    ├── routes/                # auth, dashboard, users, vocabulary, history, languages
-    └── views/                 # EJS templates (partials/head, partials/sidebar, các trang)
+    ├── middleware/           # requireAuth
+    ├── services/             # axios client that forwards the session JWT, upload helper
+    ├── routes/               # auth, dashboard, users, vocabulary, history, languages, settings
+    └── views/                # EJS templates and partials
 ```
-
-Admin đăng nhập → token JWT lưu trong `express-session` (server-side, cookie chỉ chứa session id) → mọi request tới backend đều đính kèm token này qua header `Authorization`.
-
-## 6. Việc tiếp theo có thể làm
-
-- Trang chỉnh sửa (edit) chi tiết cho từ vựng hệ thống / ngôn ngữ (hiện tại sửa nhanh qua nút bật-tắt, có thể mở rộng thành form riêng).
-- Biểu đồ trực quan cho `registrationsByDay` (đã có sẵn dữ liệu từ API `/api/stats/users`).
-- Phân trang cho trang Kho từ vựng.

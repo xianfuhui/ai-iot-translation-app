@@ -52,7 +52,9 @@ const createUser = async (req, res, next) => {
     if (existingUser) return res.status(409).json({ message: 'Email đã được sử dụng' });
 
     const user = await User.create({ fullName, email, password, role: role || 'user' });
-    res.status(201).json({ id: user._id, fullName: user.fullName, email: user.email, role: user.role });
+    res
+      .status(201)
+      .json({ id: user._id, fullName: user.fullName, email: user.email, role: user.role });
   } catch (error) {
     next(error);
   }
@@ -71,7 +73,10 @@ const updateUser = async (req, res, next) => {
     if (isActive !== undefined) user.isActive = isActive;
 
     await user.save();
-    res.json({ message: 'Cập nhật thành công', user: { id: user._id, fullName: user.fullName, role: user.role, isActive: user.isActive } });
+    res.json({
+      message: 'Cập nhật thành công',
+      user: { id: user._id, fullName: user.fullName, role: user.role, isActive: user.isActive },
+    });
   } catch (error) {
     next(error);
   }

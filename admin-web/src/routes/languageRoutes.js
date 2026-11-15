@@ -49,7 +49,11 @@ router.post('/languages', async (req, res, next) => {
 router.post('/languages/:id/update', async (req, res, next) => {
   try {
     const { code, name, isActive } = req.body;
-    await apiClient(req).put(`/languages/${req.params.id}`, { code, name, isActive: isActive === 'true' });
+    await apiClient(req).put(`/languages/${req.params.id}`, {
+      code,
+      name,
+      isActive: isActive === 'true',
+    });
     res.redirect('/languages');
   } catch (err) {
     next(err);
@@ -88,7 +92,8 @@ router.post('/languages/models', upload.single('modelFile'), async (req, res, ne
 // Sửa model (kèm thay file mới nếu có)
 router.post('/languages/models/:id/update', upload.single('modelFile'), async (req, res, next) => {
   try {
-    const { type, name, languageCode, identifier, downloadUrl, sizeMB, description, isActive } = req.body;
+    const { type, name, languageCode, identifier, downloadUrl, sizeMB, description, isActive } =
+      req.body;
     await apiUpload(
       req,
       'put',

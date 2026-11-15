@@ -14,7 +14,15 @@ const UPLOAD_DIR = path.join(__dirname, '..', 'uploads', 'models');
 
 // Collection nghiệp vụ sẽ bị xóa sạch. KHÔNG gồm `settings` (Gemini API key do admin
 // nhập) — để mỗi lần seed lại không phải nhập key. Muốn xóa luôn: npm run seed:reset -- --with-settings
-const COLLECTIONS = [User, Language, Vocabulary, SystemVocabulary, TranslationHistory, AIConversation, Model];
+const COLLECTIONS = [
+  User,
+  Language,
+  Vocabulary,
+  SystemVocabulary,
+  TranslationHistory,
+  AIConversation,
+  Model,
+];
 
 // Chặn chạy nhầm trên DB production
 const assertSafe = () => {

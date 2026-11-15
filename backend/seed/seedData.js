@@ -40,8 +40,20 @@ async function run() {
   // lastLoginAt có mặt để schema hiện ĐỦ field khi sample document (Compass/Hackolade
   // vẽ diagram từ dữ liệu thật — field vắng mặt trong mọi doc sẽ biến mất khỏi diagram).
   const users = await User.create([
-    { fullName: 'Nguyễn Văn A', email: DEMO_USER_EMAILS[0], password: 'User@123', role: 'user', lastLoginAt: new Date(Date.now() - 1000 * 60 * 60 * 2) },
-    { fullName: 'Trần Thị B', email: DEMO_USER_EMAILS[1], password: 'User@123', role: 'user', lastLoginAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 6) },
+    {
+      fullName: 'Nguyễn Văn A',
+      email: DEMO_USER_EMAILS[0],
+      password: 'User@123',
+      role: 'user',
+      lastLoginAt: new Date(Date.now() - 1000 * 60 * 60 * 2),
+    },
+    {
+      fullName: 'Trần Thị B',
+      email: DEMO_USER_EMAILS[1],
+      password: 'User@123',
+      role: 'user',
+      lastLoginAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 6),
+    },
   ]);
   console.log(`✅ Đã tạo ${users.length} tài khoản user demo (mật khẩu: User@123)`);
   const [user1, user2] = users;
@@ -49,14 +61,71 @@ async function run() {
   // ===== 3. Kho từ vựng hệ thống =====
   // Từ có audioUrl thật (dictionaryapi.dev) để field này hiện trong schema sampling
   const systemWords = [
-    { word: 'hello', meaning: 'xin chào', phonetic: '/həˈloʊ/', audioUrl: 'https://api.dictionaryapi.dev/media/pronunciations/en/hello-us.mp3', sourceLanguage: 'en', targetLanguage: 'vi', category: 'giao tiếp' },
-    { word: 'thank you', meaning: 'cảm ơn', phonetic: '/θæŋk juː/', sourceLanguage: 'en', targetLanguage: 'vi', category: 'giao tiếp' },
-    { word: 'airport', meaning: 'sân bay', phonetic: '/ˈeərpɔːrt/', sourceLanguage: 'en', targetLanguage: 'vi', category: 'du lịch' },
-    { word: 'passport', meaning: 'hộ chiếu', phonetic: '/ˈpæspɔːrt/', sourceLanguage: 'en', targetLanguage: 'vi', category: 'du lịch' },
-    { word: 'meeting', meaning: 'cuộc họp', phonetic: '/ˈmiːtɪŋ/', sourceLanguage: 'en', targetLanguage: 'vi', category: 'công việc' },
-    { word: 'deadline', meaning: 'hạn chót', phonetic: '/ˈdedlaɪn/', sourceLanguage: 'en', targetLanguage: 'vi', category: 'công việc' },
-    { word: 'ありがとう', meaning: 'cảm ơn', phonetic: 'arigatou', sourceLanguage: 'ja', targetLanguage: 'vi', category: 'giao tiếp' },
-    { word: 'こんにちは', meaning: 'xin chào', phonetic: 'konnichiwa', sourceLanguage: 'ja', targetLanguage: 'vi', category: 'giao tiếp' },
+    {
+      word: 'hello',
+      meaning: 'xin chào',
+      phonetic: '/həˈloʊ/',
+      audioUrl: 'https://api.dictionaryapi.dev/media/pronunciations/en/hello-us.mp3',
+      sourceLanguage: 'en',
+      targetLanguage: 'vi',
+      category: 'giao tiếp',
+    },
+    {
+      word: 'thank you',
+      meaning: 'cảm ơn',
+      phonetic: '/θæŋk juː/',
+      sourceLanguage: 'en',
+      targetLanguage: 'vi',
+      category: 'giao tiếp',
+    },
+    {
+      word: 'airport',
+      meaning: 'sân bay',
+      phonetic: '/ˈeərpɔːrt/',
+      sourceLanguage: 'en',
+      targetLanguage: 'vi',
+      category: 'du lịch',
+    },
+    {
+      word: 'passport',
+      meaning: 'hộ chiếu',
+      phonetic: '/ˈpæspɔːrt/',
+      sourceLanguage: 'en',
+      targetLanguage: 'vi',
+      category: 'du lịch',
+    },
+    {
+      word: 'meeting',
+      meaning: 'cuộc họp',
+      phonetic: '/ˈmiːtɪŋ/',
+      sourceLanguage: 'en',
+      targetLanguage: 'vi',
+      category: 'công việc',
+    },
+    {
+      word: 'deadline',
+      meaning: 'hạn chót',
+      phonetic: '/ˈdedlaɪn/',
+      sourceLanguage: 'en',
+      targetLanguage: 'vi',
+      category: 'công việc',
+    },
+    {
+      word: 'ありがとう',
+      meaning: 'cảm ơn',
+      phonetic: 'arigatou',
+      sourceLanguage: 'ja',
+      targetLanguage: 'vi',
+      category: 'giao tiếp',
+    },
+    {
+      word: 'こんにちは',
+      meaning: 'xin chào',
+      phonetic: 'konnichiwa',
+      sourceLanguage: 'ja',
+      targetLanguage: 'vi',
+      category: 'giao tiếp',
+    },
   ];
   await SystemVocabulary.deleteMany({ word: { $in: systemWords.map((w) => w.word) } });
   // createdBy trỏ vào admin thật (nếu đã seed:admin) — có ObjectId thật thì Compass
@@ -70,9 +139,37 @@ async function run() {
   // ===== 4. Từ vựng yêu thích của user1 =====
   await Vocabulary.deleteMany({ user: user1._id });
   const myVocab = await Vocabulary.insertMany([
-    { user: user1._id, word: 'hello', meaning: 'xin chào', phonetic: '/həˈloʊ/', audioUrl: 'https://api.dictionaryapi.dev/media/pronunciations/en/hello-us.mp3', sourceLanguage: 'en', targetLanguage: 'vi', source: 'manual', inFlashcard: true },
-    { user: user1._id, word: 'beautiful', meaning: 'xinh đẹp', phonetic: '/ˈbjuːtɪfəl/', sourceLanguage: 'en', targetLanguage: 'vi', source: 'conversation', inFlashcard: true },
-    { user: user1._id, word: 'journey', meaning: 'hành trình', phonetic: '/ˈdʒɜːrni/', sourceLanguage: 'en', targetLanguage: 'vi', source: 'manual', inFlashcard: false },
+    {
+      user: user1._id,
+      word: 'hello',
+      meaning: 'xin chào',
+      phonetic: '/həˈloʊ/',
+      audioUrl: 'https://api.dictionaryapi.dev/media/pronunciations/en/hello-us.mp3',
+      sourceLanguage: 'en',
+      targetLanguage: 'vi',
+      source: 'manual',
+      inFlashcard: true,
+    },
+    {
+      user: user1._id,
+      word: 'beautiful',
+      meaning: 'xinh đẹp',
+      phonetic: '/ˈbjuːtɪfəl/',
+      sourceLanguage: 'en',
+      targetLanguage: 'vi',
+      source: 'conversation',
+      inFlashcard: true,
+    },
+    {
+      user: user1._id,
+      word: 'journey',
+      meaning: 'hành trình',
+      phonetic: '/ˈdʒɜːrni/',
+      sourceLanguage: 'en',
+      targetLanguage: 'vi',
+      source: 'manual',
+      inFlashcard: false,
+    },
   ]);
   console.log(`✅ Đã tạo ${myVocab.length} từ vựng yêu thích cho ${user1.email}`);
 
@@ -113,9 +210,21 @@ async function run() {
       targetLanguage: 'vi',
       type: 'conversation',
       segments: [
-        { sourceText: 'Hello, how are you today?', translatedText: 'Xin chào, hôm nay bạn khỏe không?', at: new Date(now - 1000 * 60 * 60 * 5) },
-        { sourceText: 'I am fine, thank you. And you?', translatedText: 'Tôi khỏe, cảm ơn. Còn bạn?', at: new Date(now - 1000 * 60 * 60 * 5 + 1000 * 20) },
-        { sourceText: 'Let’s start the meeting now.', translatedText: 'Chúng ta bắt đầu cuộc họp thôi.', at: new Date(now - 1000 * 60 * 60 * 5 + 1000 * 45) },
+        {
+          sourceText: 'Hello, how are you today?',
+          translatedText: 'Xin chào, hôm nay bạn khỏe không?',
+          at: new Date(now - 1000 * 60 * 60 * 5),
+        },
+        {
+          sourceText: 'I am fine, thank you. And you?',
+          translatedText: 'Tôi khỏe, cảm ơn. Còn bạn?',
+          at: new Date(now - 1000 * 60 * 60 * 5 + 1000 * 20),
+        },
+        {
+          sourceText: 'Let’s start the meeting now.',
+          translatedText: 'Chúng ta bắt đầu cuộc họp thôi.',
+          at: new Date(now - 1000 * 60 * 60 * 5 + 1000 * 45),
+        },
       ],
       startedAt: new Date(now - 1000 * 60 * 60 * 5),
       endedAt: new Date(now - 1000 * 60 * 60 * 5 + 1000 * 50),
@@ -132,10 +241,20 @@ async function run() {
     user: user1._id,
     title: 'Luyện tập hội thoại nhà hàng',
     messages: [
-      { role: 'user', content: 'Hãy đóng vai nhân viên nhà hàng, tôi muốn gọi món bằng tiếng Anh.' },
-      { role: 'assistant', content: 'Sure! Welcome to our restaurant, what would you like to order today?' },
+      {
+        role: 'user',
+        content: 'Hãy đóng vai nhân viên nhà hàng, tôi muốn gọi món bằng tiếng Anh.',
+      },
+      {
+        role: 'assistant',
+        content: 'Sure! Welcome to our restaurant, what would you like to order today?',
+      },
       { role: 'user', content: 'Câu đó nghĩa là gì?' },
-      { role: 'assistant', content: 'Câu đó nghĩa là: "Chào mừng đến nhà hàng của chúng tôi, hôm nay bạn muốn gọi món gì?"' },
+      {
+        role: 'assistant',
+        content:
+          'Câu đó nghĩa là: "Chào mừng đến nhà hàng của chúng tôi, hôm nay bạn muốn gọi món gì?"',
+      },
     ],
     summary: 'Luyện hội thoại gọi món tại nhà hàng bằng tiếng Anh, có giải thích nghĩa câu.',
   });
@@ -144,17 +263,78 @@ async function run() {
   // ===== 7. Kho model Vosk (STT) + ML Kit (dịch) =====
   const modelData = [
     // Vosk - Speech to Text
-    { type: 'vosk', name: 'Vosk English Small', languageCode: 'en', identifier: 'vosk-model-small-en-us-0.15', downloadUrl: 'https://alphacephei.com/vosk/models/vosk-model-small-en-us-0.15.zip', sizeMB: 40, description: 'Nhẹ, phù hợp mobile', isActive: true },
-    { type: 'vosk', name: 'Vosk Vietnamese', languageCode: 'vi', identifier: 'vosk-model-vn-0.4', downloadUrl: 'https://alphacephei.com/vosk/models/vosk-model-vn-0.4.zip', sizeMB: 32, description: 'Model tiếng Việt cộng đồng', isActive: true },
-    { type: 'vosk', name: 'Vosk Japanese Small', languageCode: 'ja', identifier: 'vosk-model-small-ja-0.22', downloadUrl: 'https://alphacephei.com/vosk/models/vosk-model-small-ja-0.22.zip', sizeMB: 48, description: 'Nhẹ, phù hợp mobile', isActive: true },
+    {
+      type: 'vosk',
+      name: 'Vosk English Small',
+      languageCode: 'en',
+      identifier: 'vosk-model-small-en-us-0.15',
+      downloadUrl: 'https://alphacephei.com/vosk/models/vosk-model-small-en-us-0.15.zip',
+      sizeMB: 40,
+      description: 'Nhẹ, phù hợp mobile',
+      isActive: true,
+    },
+    {
+      type: 'vosk',
+      name: 'Vosk Vietnamese',
+      languageCode: 'vi',
+      identifier: 'vosk-model-vn-0.4',
+      downloadUrl: 'https://alphacephei.com/vosk/models/vosk-model-vn-0.4.zip',
+      sizeMB: 32,
+      description: 'Model tiếng Việt cộng đồng',
+      isActive: true,
+    },
+    {
+      type: 'vosk',
+      name: 'Vosk Japanese Small',
+      languageCode: 'ja',
+      identifier: 'vosk-model-small-ja-0.22',
+      downloadUrl: 'https://alphacephei.com/vosk/models/vosk-model-small-ja-0.22.zip',
+      sizeMB: 48,
+      description: 'Nhẹ, phù hợp mobile',
+      isActive: true,
+    },
     // ML Kit - Dịch offline (identifier = mã ngôn ngữ ML Kit dùng để dịch)
-    { type: 'mlkit', name: 'ML Kit English', languageCode: 'en', identifier: 'en', sizeMB: 30, description: 'Tự tải khi cần, ~30MB', isActive: true },
-    { type: 'mlkit', name: 'ML Kit Vietnamese', languageCode: 'vi', identifier: 'vi', sizeMB: 30, description: 'Tự tải khi cần, ~30MB', isActive: true },
-    { type: 'mlkit', name: 'ML Kit Japanese', languageCode: 'ja', identifier: 'ja', sizeMB: 30, description: 'Tự tải khi cần, ~30MB', isActive: true },
+    {
+      type: 'mlkit',
+      name: 'ML Kit English',
+      languageCode: 'en',
+      identifier: 'en',
+      sizeMB: 30,
+      description: 'Tự tải khi cần, ~30MB',
+      isActive: true,
+    },
+    {
+      type: 'mlkit',
+      name: 'ML Kit Vietnamese',
+      languageCode: 'vi',
+      identifier: 'vi',
+      sizeMB: 30,
+      description: 'Tự tải khi cần, ~30MB',
+      isActive: true,
+    },
+    {
+      type: 'mlkit',
+      name: 'ML Kit Japanese',
+      languageCode: 'ja',
+      identifier: 'ja',
+      sizeMB: 30,
+      description: 'Tự tải khi cần, ~30MB',
+      isActive: true,
+    },
     // Model demo "admin upload trực tiếp" — để fileName/originalFileName hiện trong
     // schema sampling. Gắn vào 'ko' (ngôn ngữ đang tắt) + isActive:false nên mobile
     // không bao giờ query trúng, không ảnh hưởng app.
-    { type: 'vosk', name: 'Vosk Korean Small (admin upload)', languageCode: 'ko', identifier: 'vosk-model-small-ko-0.22', sizeMB: 82, fileName: 'vosk-ko-0.22-8f3a1c.zip', originalFileName: 'vosk-model-small-ko-0.22.zip', description: 'Demo file model do admin upload', isActive: false },
+    {
+      type: 'vosk',
+      name: 'Vosk Korean Small (admin upload)',
+      languageCode: 'ko',
+      identifier: 'vosk-model-small-ko-0.22',
+      sizeMB: 82,
+      fileName: 'vosk-ko-0.22-8f3a1c.zip',
+      originalFileName: 'vosk-model-small-ko-0.22.zip',
+      description: 'Demo file model do admin upload',
+      isActive: false,
+    },
   ];
   await Model.deleteMany({ identifier: { $in: modelData.map((m) => m.identifier) } });
   const models = await Model.insertMany(modelData);

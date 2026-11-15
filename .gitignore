@@ -1,18 +1,37 @@
-# Secrets — never commit
+# Secrets: never commit
 .env
 *.env
 !*.env.example
 
-# Dependencies
+# Dependencies / build output
 node_modules/
-
-# Build output
 build/
 dist/
 
+# Flutter / Dart / Android generated
+mobile/.dart_tool/
+mobile/.flutter-plugins
+mobile/.flutter-plugins-dependencies
+mobile/.pub-cache/
+mobile/android/.gradle/
+mobile/android/.kotlin/
+mobile/android/local.properties
+mobile/windows/flutter/ephemeral/
+mobile/ios/Flutter/ephemeral/
+mobile/ios/Flutter/Generated.xcconfig
+mobile/ios/Flutter/flutter_export_environment.sh
+mobile/ios/Pods/
+
 # Uploaded model files (admin uploads, can be large)
 backend/uploads/models/*
+!backend/uploads/models/.gitkeep
 
-# OS / editor noise
-.DS_Store
+# Logs
 *.log
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.iml
+

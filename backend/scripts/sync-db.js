@@ -207,11 +207,21 @@ async function main() {
   }
 
   // 2. Đồng bộ index theo khai báo trong Mongoose schema (drop index thừa)
-  const models = [User, Language, Model, Vocabulary, SystemVocabulary, TranslationHistory, AIConversation];
+  const models = [
+    User,
+    Language,
+    Model,
+    Vocabulary,
+    SystemVocabulary,
+    TranslationHistory,
+    AIConversation,
+  ];
   for (const m of models) {
     const dropped = await m.syncIndexes();
     const names = Object.keys(await m.collection.indexInformation());
-    console.log(`🔄 ${m.collection.name}: index = [${names.join(', ')}]${dropped.length ? ` (đã drop: ${dropped.join(', ')})` : ''}`);
+    console.log(
+      `🔄 ${m.collection.name}: index = [${names.join(', ')}]${dropped.length ? ` (đã drop: ${dropped.join(', ')})` : ''}`
+    );
   }
 
   await mongoose.disconnect();

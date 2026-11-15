@@ -1,6 +1,11 @@
 const express = require('express');
 const router = express.Router();
-const { chat, summarize, getConversations, getConversationById } = require('../controllers/aiController');
+const {
+  chat,
+  summarize,
+  getConversations,
+  getConversationById,
+} = require('../controllers/aiController');
 const { protect } = require('../middleware/auth');
 
 router.use(protect); // Mobile only

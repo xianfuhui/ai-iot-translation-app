@@ -37,7 +37,7 @@
           </thead>
           <tbody>
             <% records.forEach(r => { %>
-              <% 
+              <%
                 const isConversation = r.type === 'conversation' && Array.isArray(r.segments) && r.segments.length > 0;
                 const srcPreview = isConversation
                   ? r.segments.map(s => s.sourceText).join(' / ')

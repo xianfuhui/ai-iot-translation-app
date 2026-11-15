@@ -10,7 +10,8 @@ const saveVocabulary = async (req, res, next) => {
   try {
     const { word, meaning, sourceLanguage, targetLanguage, source } = req.body;
     if (!word || !word.trim()) return res.status(400).json({ message: 'Vui lòng nhập từ vựng' });
-    if (!meaning || !meaning.trim()) return res.status(400).json({ message: 'Vui lòng nhập nghĩa của từ vựng' });
+    if (!meaning || !meaning.trim())
+      return res.status(400).json({ message: 'Vui lòng nhập nghĩa của từ vựng' });
 
     const vocab = await Vocabulary.findOneAndUpdate(
       { user: req.user._id, word, targetLanguage },
@@ -123,7 +124,8 @@ const createSystemVocabulary = async (req, res, next) => {
   try {
     const { word, meaning } = req.body;
     if (!word || !word.trim()) return res.status(400).json({ message: 'Vui lòng nhập từ vựng' });
-    if (!meaning || !meaning.trim()) return res.status(400).json({ message: 'Vui lòng nhập nghĩa của từ vựng' });
+    if (!meaning || !meaning.trim())
+      return res.status(400).json({ message: 'Vui lòng nhập nghĩa của từ vựng' });
 
     const item = await SystemVocabulary.create({ ...req.body, createdBy: req.user._id });
     res.status(201).json(item);
@@ -136,7 +138,11 @@ const createSystemVocabulary = async (req, res, next) => {
 // @route   PUT /api/vocabulary/system/:id
 const updateSystemVocabulary = async (req, res, next) => {
   try {
-    const item = await SystemVocabulary.findByIdAndUpdate(req.params.id, { ...req.body }, { new: true });
+    const item = await SystemVocabulary.findByIdAndUpdate(
+      req.params.id,
+      { ...req.body },
+      { new: true }
+    );
     if (!item) return res.status(404).json({ message: 'Không tìm thấy từ vựng hệ thống' });
     res.json(item);
   } catch (error) {
@@ -176,7 +182,8 @@ const getSystemCategories = async (req, res, next) => {
 // Nếu từ đã tồn tại (word + targetLanguage) thì bỏ qua (không ghi đè).
 const importSystemVocabulary = async (req, res, next) => {
   try {
-    if (!req.file) return res.status(400).json({ message: 'Vui lòng tải lên file Excel (.xlsx, .xls)' });
+    if (!req.file)
+      return res.status(400).json({ message: 'Vui lòng tải lên file Excel (.xlsx, .xls)' });
 
     const workbook = xlsx.read(req.file.buffer, { type: 'buffer' });
     const sheetName = workbook.SheetNames[0];
@@ -184,7 +191,15 @@ const importSystemVocabulary = async (req, res, next) => {
 
     if (!rows.length) return res.status(400).json({ message: 'File Excel không có dữ liệu' });
 
-    const ALLOWED = ['word', 'meaning', 'sourceLanguage', 'targetLanguage', 'category', 'phonetic', 'audioUrl'];
+    const ALLOWED = [
+      'word',
+      'meaning',
+      'sourceLanguage',
+      'targetLanguage',
+      'category',
+      'phonetic',
+      'audioUrl',
+    ];
 
     const errors = [];
     const toInsert = [];
@@ -193,8 +208,14 @@ const importSystemVocabulary = async (req, res, next) => {
       const rowNum = i + 2; // +2 vì row 1 là header
       const word = String(row.word || '').trim();
       const meaning = String(row.meaning || '').trim();
-      if (!word) { errors.push(`Dòng ${rowNum}: thiếu "word"`); return; }
-      if (!meaning) { errors.push(`Dòng ${rowNum}: thiếu "meaning"`); return; }
+      if (!word) {
+        errors.push(`Dòng ${rowNum}: thiếu "word"`);
+        return;
+      }
+      if (!meaning) {
+        errors.push(`Dòng ${rowNum}: thiếu "meaning"`);
+        return;
+      }
 
       const doc = { createdBy: req.user._id };
       ALLOWED.forEach((key) => {
@@ -215,7 +236,10 @@ const importSystemVocabulary = async (req, res, next) => {
     for (const doc of toInsert) {
       const filter = { word: doc.word, targetLanguage: doc.targetLanguage || '' };
       const existing = await SystemVocabulary.findOne(filter);
-      if (existing) { skipped++; continue; }
+      if (existing) {
+        skipped++;
+        continue;
+      }
       await SystemVocabulary.create(doc);
       inserted++;
     }

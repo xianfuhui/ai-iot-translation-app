@@ -49,7 +49,9 @@ const createModel = async (req, res, next) => {
   } catch (error) {
     if (req.file) deleteFileIfExists(relativeUploadPath(req.file)); // dọn file nếu tạo record thất bại
     if (error.code === 11000) {
-      return res.status(409).json({ message: 'Model này (cùng loại, ngôn ngữ, identifier) đã tồn tại' });
+      return res
+        .status(409)
+        .json({ message: 'Model này (cùng loại, ngôn ngữ, identifier) đã tồn tại' });
     }
     next(error);
   }
@@ -69,7 +71,10 @@ const updateModel = async (req, res, next) => {
       payload.sizeMB = Math.round((req.file.size / (1024 * 1024)) * 10) / 10;
     }
 
-    const model = await Model.findByIdAndUpdate(req.params.id, payload, { new: true, runValidators: true });
+    const model = await Model.findByIdAndUpdate(req.params.id, payload, {
+      new: true,
+      runValidators: true,
+    });
 
     // Nếu vừa upload file mới thành công, xóa file cũ (nếu có) để khỏi rác đĩa
     if (req.file && existing.fileName) deleteFileIfExists(existing.fileName);
@@ -78,7 +83,9 @@ const updateModel = async (req, res, next) => {
   } catch (error) {
     if (req.file) deleteFileIfExists(relativeUploadPath(req.file));
     if (error.code === 11000) {
-      return res.status(409).json({ message: 'Model này (cùng loại, ngôn ngữ, identifier) đã tồn tại' });
+      return res
+        .status(409)
+        .json({ message: 'Model này (cùng loại, ngôn ngữ, identifier) đã tồn tại' });
     }
     next(error);
   }

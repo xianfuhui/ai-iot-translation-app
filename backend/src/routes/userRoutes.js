@@ -1,6 +1,12 @@
 const express = require('express');
 const router = express.Router();
-const { getUsers, getUserById, createUser, updateUser, deleteUser } = require('../controllers/userController');
+const {
+  getUsers,
+  getUserById,
+  createUser,
+  updateUser,
+  deleteUser,
+} = require('../controllers/userController');
 const { protect, adminOnly } = require('../middleware/auth');
 
 // Toàn bộ route quản lý user chỉ dành cho Web Admin

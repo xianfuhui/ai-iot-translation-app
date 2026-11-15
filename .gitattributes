@@ -1,2 +1,12 @@
-# Auto detect text files and perform LF normalization
-* text=auto
+# Normalise line endings; keep Windows scripts as CRLF
+* text=auto eol=lf
+*.cmd text eol=crlf
+*.bat text eol=crlf
+mvnw text eol=lf
+
+# Binaries
+*.png binary
+*.jpg binary
+*.pdf binary
+*.p12 binary
+*.gz binary
