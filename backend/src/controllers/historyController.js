@@ -1,5 +1,5 @@
 const TranslationHistory = require('../models/TranslationHistory');
-const { callGemini, truncateForLlm } = require('../utils/gemini');
+const { callGemini, truncateForLlm, getAiConfig } = require('../utils/gemini');
 
 // @desc    Lưu một bản ghi lịch sử dịch thuật
 // @route   POST /api/history
@@ -121,7 +121,8 @@ const summarizeHistory = async (req, res, next) => {
       transcript = `Gốc: ${record.sourceText}\nDịch: ${record.translatedText}`;
     }
 
-    const { text: safeTranscript, truncated } = truncateForLlm(transcript);
+    const { maxInputChars } = await getAiConfig();
+    const { text: safeTranscript, truncated } = truncateForLlm(transcript, maxInputChars);
 
     const prompt =
       `Hãy tóm tắt ngắn gọn, súc tích (khoảng 3-5 câu) nội dung chính của đoạn hội thoại/dịch thuật ` +
@@ -134,6 +135,7 @@ const summarizeHistory = async (req, res, next) => {
 
     res.json({ id: record._id, summary, truncated });
   } catch (error) {
+    if (error.code === 'NO_API_KEY') return res.status(503).json({ message: error.message });
     if (error.response) {
       return res
         .status(502)

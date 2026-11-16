@@ -1,5 +1,5 @@
 const AIConversation = require('../models/AIConversation');
-const { callGemini, truncateForLlm, MAX_LLM_INPUT_CHARS } = require('../utils/gemini');
+const { callGemini, truncateForLlm, getAiConfig } = require('../utils/gemini');
 
 // Chặn anti-pattern "unbounded array": messages[] nhúng trong document nên lớn
 // vô hạn sẽ đâm vào trần 16MB/document của MongoDB (và mỗi lần save phải ghi lại
@@ -49,6 +49,7 @@ const chat = async (req, res, next) => {
 
     res.json({ conversationId: conversation._id, reply: aiReply });
   } catch (error) {
+    if (error.code === 'NO_API_KEY') return res.status(503).json({ message: error.message });
     if (error.response) {
       console.error('Gemini API error:', error.response.data);
       return res
@@ -74,7 +75,8 @@ const summarize = async (req, res, next) => {
       .join('\n');
 
     // Tính năng LLM có giới hạn số ký tự đầu vào -> tự động cắt bớt nếu hội thoại quá dài
-    const { text: safeTranscript, truncated } = truncateForLlm(transcript);
+    const { maxInputChars } = await getAiConfig();
+    const { text: safeTranscript, truncated } = truncateForLlm(transcript, maxInputChars);
 
     const prompt = `Hãy tóm tắt ngắn gọn, súc tích nội dung chính của cuộc hội thoại sau bằng tiếng Việt${
       truncated ? ' (một phần nội dung đã được lược bớt do quá dài)' : ''
@@ -87,6 +89,7 @@ const summarize = async (req, res, next) => {
 
     res.json({ conversationId: conversation._id, summary });
   } catch (error) {
+    if (error.code === 'NO_API_KEY') return res.status(503).json({ message: error.message });
     if (error.response) {
       return res
         .status(502)
