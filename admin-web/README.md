@@ -16,12 +16,11 @@ The backend must be running and at least one admin must exist (`npm run seed:adm
 
 | Page | Route | What it does |
 |---|---|---|
-| Dashboard | `/dashboard` | User and vocabulary statistics |
+| Dashboard | `/dashboard` | User and vocabulary statistics, most-saved words |
 | Users | `/users` | Search, change role, lock/unlock, delete |
-| Vocabulary | `/vocabulary` | Manage the system word bank, filter by topic |
+| Vocabulary | `/vocabulary` | Manage the system word bank: add manually or import an Excel file, filter by topic |
 | History | `/history` | View and delete system-wide translation history, filter by date |
 | Languages and models | `/languages` | Enable/disable languages; per-language Vosk and ML Kit models with file upload or external link |
-| Settings | `/settings` | Gemini API key and model (stored encrypted, with a connection test) and admin password change |
 
 ## Structure
 
@@ -32,6 +31,6 @@ admin-web/
 └── src/
     ├── middleware/           # requireAuth
     ├── services/             # axios client that forwards the session JWT, upload helper
-    ├── routes/               # auth, dashboard, users, vocabulary, history, languages, settings
+    ├── routes/               # auth, dashboard, users, vocabulary, history, languages
     └── views/                # EJS templates and partials
 ```

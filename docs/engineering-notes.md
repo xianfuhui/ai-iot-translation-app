@@ -18,7 +18,15 @@ Conventions and pitfalls worth knowing before changing the code.
 3. iOS deployment target is **15.5** (Podfile and project), required by ML Kit.
 4. `baseUrl` in `mobile/lib/core/constants.dart` is platform-aware (Android `10.0.2.2`, iOS `localhost`, port 5000). Use the LAN IP on a physical device.
 5. An ATS exception for `http://localhost` is set in `ios/Runner/Info.plist`.
-6. Android: microphone permission and the JNA ProGuard rules for Vosk are already configured.
+
+## Smart glasses (Brilliant Labs Frame, BLE)
+
+- Pinned `flutter_blue_plus` to `^1.32.12` (`<2.0.0`): version 2.x requires a license parameter.
+- The Frame exposes a Nordic-style UART: service `7a230001-…`, TX `7a230002-…` (phone to glasses, Lua is executed on receipt), RX `7a230003-…` (notifications). Byte `0x03` stops the running Lua program.
+- Each Lua statement must fit in one BLE write (`MTU - 3` bytes), so `_draw` batches statements up to that size and truncates long lines by bytes.
+- `FrameService` is a singleton and only keeps the **latest** text; do not turn it into a queue, or subtitles will lag.
+- The default glasses font only renders basic Latin, hence the "strip diacritics" switch (on by default).
+- Android 12+ needs `BLUETOOTH_SCAN` (`neverForLocation`) and `BLUETOOTH_CONNECT`; Android 11 and below need location permission to scan. iOS needs the `NSBluetooth*UsageDescription` keys. Auto-reconnect only runs when permissions are already granted, so the app never shows a permission dialog at startup.
 
 ## Secrets
 

@@ -14,6 +14,8 @@ import '../../services/history_service.dart';
 import '../../services/translation_service.dart';
 import '../../services/model_service.dart';
 import '../../services/vosk_service.dart';
+import '../../services/frame_service.dart';
+import '../../widgets/frame_connect_sheet.dart';
 import '../../widgets/brand_mark.dart';
 import '../../widgets/connection_banner.dart';
 import '../home_screen.dart';
@@ -35,6 +37,14 @@ import '../home_screen.dart';
 /// DỊCH GIỌNG NÓI (chỉ Android — vosk_flutter không có iOS): nút "Nói để dịch"
 /// trong ô nhập bật/tắt phiên nghe liên tục; mỗi câu nhận diện xong tự dịch +
 /// đọc to; cả phiên được lưu thành MỘT mục lịch sử "conversation" khi Dừng.
+///
+/// DỊCH MƯỢT KIỂU FRAME: câu đang nói dở (partial) cũng được dịch liên tục —
+/// bản dịch hiện/cuộn theo từng chữ thay vì đợi Vosk chốt câu (học từ app
+/// frame_flutter_translate_host). Luồng dịch luôn dịch bản MỚI NHẤT, bỏ các
+/// bản trung gian nên không bị trễ khi nói nhanh.
+///
+/// KÍNH PHIÊN DỊCH: nút kính ở thanh trên mở màn kết nối Frame (BLE); khi đã
+/// nối, mọi bản dịch (nói hoặc gõ) đều được đẩy lên màn hình của kính.
 class TranslateScreen extends StatefulWidget {
   const TranslateScreen({super.key});
 
@@ -49,6 +59,7 @@ class _TranslateScreenState extends State<TranslateScreen> {
   final _translationService = TranslationService();
   final _voskService = VoskService();
   final _tts = FlutterTts();
+  final _frame = FrameService.instance;
   final _inputController = TextEditingController();
 
   List<LanguageModel> _languages = [];
@@ -70,7 +81,7 @@ class _TranslateScreenState extends State<TranslateScreen> {
   int _translateSeq = 0;
   // Bộ nhớ 50 bản dịch gần nhất: gõ lại / đảo chiều / xoá rồi gõ lại -> hiện ngay.
   final _translationCache = <String, String>{};
-  static const _cacheSize = 50;
+  static const _cacheSize = 120; // partial cũng vào cache nên để rộng hơn
   // Gói ML Kit đã biết là có trên máy -> khỏi hỏi lại native mỗi lần dịch.
   final Set<String> _readyModels = {};
   String? _ttsLanguage;
@@ -96,6 +107,13 @@ class _TranslateScreenState extends State<TranslateScreen> {
   final List<HistorySegment> _sessionSegments = [];
   DateTime? _sessionStartedAt;
 
+  // --- Dịch câu đang nói dở (partial) theo thời gian thực ---
+  String _pendingPartial = ''; // partial mới nhất Vosk vừa đưa
+  String _lastPartialTranslated = ''; // partial đã đưa vào dịch gần nhất
+  bool _partialLoopRunning = false;
+  int _partialEpoch = 0; // tăng mỗi khi Vosk chốt câu -> bỏ kết quả partial cũ
+  static const _glassesAutoClear = Duration(seconds: 8);
+
   @override
   void initState() {
     super.initState();
@@ -104,11 +122,18 @@ class _TranslateScreenState extends State<TranslateScreen> {
     _tts.awaitSpeakCompletion(true);
     _inputController.addListener(_onInputChanged);
     OfflinePacks.changes.addListener(_onPacksChanged);
+    _frame.addListener(_onFrameChanged);
+    _frame.init(); // tự nối lại kính dùng lần trước (nếu đã có quyền)
+  }
+
+  void _onFrameChanged() {
+    if (mounted) setState(() {});
   }
 
   @override
   void dispose() {
     _liveSessionId++;
+    _frame.removeListener(_onFrameChanged);
     OfflinePacks.changes.removeListener(_onPacksChanged);
     _downloadCancel?.cancel();
     _debounce?.cancel();
@@ -201,6 +226,7 @@ class _TranslateScreenState extends State<TranslateScreen> {
     final text = _inputController.text.trim();
     if (text.isEmpty) {
       setState(() => _translatedText = '');
+      _frame.clear();
       return;
     }
     _debounce = Timer(_debounceDelay, _handleTranslateOnce);
@@ -227,6 +253,7 @@ class _TranslateScreenState extends State<TranslateScreen> {
         _translatedText = hit;
         _isTranslating = false;
       });
+      _frame.showText(hit);
       return;
     }
 
@@ -235,12 +262,10 @@ class _TranslateScreenState extends State<TranslateScreen> {
     try {
       final result = await _translateBetween(text, from, to);
       if (!mounted || seq != _translateSeq) return; // đã có lượt dịch mới hơn
-      _translationCache[key] = result;
-      if (_translationCache.length > _cacheSize) {
-        _translationCache.remove(_translationCache.keys.first);
-      }
+      _putCache(key, result);
       if (_inputController.text.trim() == text) {
         setState(() => _translatedText = result);
+        _frame.showText(result);
       }
     } catch (e) {
       if (!mounted || seq != _translateSeq) return;
@@ -277,6 +302,7 @@ class _TranslateScreenState extends State<TranslateScreen> {
       _inputController.clear();
       _translatedText = '';
     });
+    _frame.clear();
   }
 
   void _swapLanguages() {
@@ -463,9 +489,25 @@ class _TranslateScreenState extends State<TranslateScreen> {
     );
   }
 
+  void _putCache(String key, String value) {
+    _translationCache.remove(key);
+    _translationCache[key] = value;
+    while (_translationCache.length > _cacheSize) {
+      _translationCache.remove(_translationCache.keys.first);
+    }
+  }
+
+  /// Dịch có bộ nhớ đệm — dùng cho phiên nói: câu chốt thường trùng đúng bản
+  /// partial vừa dịch nên hiện ngay, không gọi ML Kit lần nữa.
   Future<String> _translate(String text) async {
-    if (_sourceLang == null || _targetLang == null) return text;
-    return _translateBetween(text, _sourceLang!.code, _targetLang!.code);
+    final from = _sourceLang?.code, to = _targetLang?.code;
+    if (from == null || to == null) return text;
+    final key = '$from>$to|$text';
+    final hit = _translationCache[key];
+    if (hit != null) return hit;
+    final result = await _translateBetween(text, from, to);
+    _putCache(key, result);
+    return result;
   }
 
   Future<void> _ignoreHistoryFailure(
@@ -581,12 +623,14 @@ class _TranslateScreenState extends State<TranslateScreen> {
       await _modelService.markVoskInstalled(_sourceLang!.code, resolvedVoskModel);
       if (isStale()) return;
 
+      // Tải sẵn gói dịch của cả 2 ngôn ngữ TRƯỚC khi mở mic: để dịch được từng
+      // câu nói dở thì không thể vừa nói vừa dừng mic đi tải gói.
+      await _prepareTranslationModels();
+      if (isStale()) return;
+      _resetPartialState();
+
       await _voskService.startListening(
-        onPartial: (partialText) {
-          // Chỉ đổi chữ trong ô nhập (TextField tự vẽ lại) — không setState để
-          // khỏi dựng lại cả màn hình ~10 lần/giây khi đang nói.
-          if (mounted && !isStale()) _inputController.text = partialText;
-        },
+        onPartial: (partialText) => _onPartialText(partialText, isStale),
         onResult: (finalText) => _queueSpeechRecognized(finalText, isStale),
       );
       if (isStale()) {
@@ -609,6 +653,7 @@ class _TranslateScreenState extends State<TranslateScreen> {
     _liveSessionId++;
     _downloadCancel?.cancel();
     await _voskService.stopListening();
+    _resetPartialState();
     if (!mounted) return;
     setState(() {
       _isLiveTranslating = false;
@@ -637,7 +682,66 @@ class _TranslateScreenState extends State<TranslateScreen> {
     }
   }
 
+  /// Dịch sẵn 2 gói ML Kit (nếu thiếu thì tải, có banner + nút Hủy).
+  Future<void> _prepareTranslationModels() async {
+    final from = _sourceLang, to = _targetLang;
+    if (from == null || to == null) return;
+    final codes = await Future.wait([
+      _resolveMlkitCode(from.code),
+      _resolveMlkitCode(to.code),
+    ]);
+    await _ensureModelDownloaded(codes[0], from.name);
+    await _ensureModelDownloaded(codes[1], to.name);
+    _warmUpTranslator();
+  }
+
+  void _resetPartialState() {
+    _partialEpoch++;
+    _pendingPartial = '';
+    _lastPartialTranslated = '';
+  }
+
+  /// Vosk đưa 1 partial: hiện ngay chữ gốc, rồi để vòng dịch lo phần dịch.
+  void _onPartialText(String text, bool Function() isStale) {
+    if (!mounted || isStale()) return;
+    // Chỉ đổi chữ trong ô nhập (TextField tự vẽ lại) — không setState cả màn.
+    _inputController.text = text;
+    _pendingPartial = text;
+    if (!_partialLoopRunning) unawaited(_runPartialLoop(isStale));
+  }
+
+  /// Vòng dịch partial kiểu Frame: luôn lấy partial MỚI NHẤT, dịch xong mới xem
+  /// lại xem có partial mới hơn không — các bản trung gian bị bỏ, không xếp hàng
+  /// nên không bao giờ bị trễ so với giọng nói.
+  Future<void> _runPartialLoop(bool Function() isStale) async {
+    _partialLoopRunning = true;
+    try {
+      while (mounted && !isStale()) {
+        final text = _pendingPartial;
+        if (text.isEmpty || text == _lastPartialTranslated) break;
+        _lastPartialTranslated = text;
+        final epoch = _partialEpoch;
+        String result;
+        try {
+          result = await _translate(text);
+        } catch (_) {
+          break; // lỗi dịch partial không đáng báo; câu chốt sẽ báo nếu cần
+        }
+        if (!mounted || isStale()) break;
+        if (epoch != _partialEpoch) continue; // Vosk vừa chốt câu -> bỏ bản này
+        setState(() => _translatedText = result);
+        _frame.showText(result, autoClear: _glassesAutoClear);
+      }
+    } finally {
+      _partialLoopRunning = false;
+    }
+  }
+
   void _queueSpeechRecognized(String recognizedText, bool Function() isStale) {
+    // Câu đã chốt -> partial cũ hết giá trị (nhưng chưa xoá chữ đang hiện).
+    _partialEpoch++;
+    _pendingPartial = '';
+    _lastPartialTranslated = '';
     _recognitionQueue = _recognitionQueue.then(
       (_) => _onSpeechRecognized(recognizedText, isStale),
     );
@@ -648,12 +752,19 @@ class _TranslateScreenState extends State<TranslateScreen> {
     bool Function() isStale,
   ) async {
     if (recognizedText.trim().isEmpty || isStale() || !mounted) return;
-    setState(() => _inputController.text = recognizedText);
+    // Người nói đã sang câu mới (có partial mới) -> đừng đè chữ đang hiện.
+    bool newerUtterance() => _pendingPartial.isNotEmpty;
+    if (!newerUtterance()) {
+      setState(() => _inputController.text = recognizedText);
+    }
 
     try {
-      final result = await _translate(recognizedText);
+      final result = await _translate(recognizedText); // thường trúng cache
       if (!mounted || isStale()) return;
-      setState(() => _translatedText = result);
+      if (!newerUtterance()) {
+        setState(() => _translatedText = result);
+        _frame.showText(result, autoClear: _glassesAutoClear);
+      }
       _sessionSegments.add(
         HistorySegment(sourceText: recognizedText, translatedText: result),
       );
@@ -728,6 +839,7 @@ class _TranslateScreenState extends State<TranslateScreen> {
             ),
           ],
           const Spacer(),
+          _buildGlassesButton(),
           if (VoskService.isSupported) ...[
             Semantics(
               button: true,
@@ -774,6 +886,44 @@ class _TranslateScreenState extends State<TranslateScreen> {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  /// Nút kính phiên dịch: chấm xanh = đã nối, mờ = chưa nối.
+  Widget _buildGlassesButton() {
+    final connected = _frame.isConnected;
+    return Semantics(
+      button: true,
+      label: connected ? 'Kính đã kết nối' : 'Kết nối kính phiên dịch',
+      child: IconButton(
+        tooltip: connected
+            ? 'Kính: ${_frame.deviceName ?? 'Frame'} — bấm để quản lý'
+            : 'Kết nối kính phiên dịch',
+        onPressed: () => showFrameConnectSheet(context),
+        icon: Stack(
+          clipBehavior: Clip.none,
+          children: [
+            Icon(
+              Icons.vrpano_rounded,
+              color: connected ? AppTheme.moss : AppTheme.moss.withValues(alpha: .45),
+            ),
+            if (connected || _frame.isBusy)
+              Positioned(
+                right: -2,
+                top: -2,
+                child: Container(
+                  width: 9,
+                  height: 9,
+                  decoration: BoxDecoration(
+                    color: connected ? const Color(0xFF2E9E5B) : AppTheme.coral,
+                    shape: BoxShape.circle,
+                    border: Border.all(color: AppTheme.paper, width: 1.5),
+                  ),
+                ),
+              ),
+          ],
+        ),
       ),
     );
   }

@@ -8,7 +8,7 @@ node_modules/
 build/
 dist/
 
-# Flutter / Dart / Android generated
+# Flutter / Dart / Android / iOS generated
 mobile/.dart_tool/
 mobile/.flutter-plugins
 mobile/.flutter-plugins-dependencies
@@ -28,10 +28,10 @@ backend/uploads/models/*
 
 # Logs
 *.log
+
 # OS / editor
 .DS_Store
 Thumbs.db
 .idea/
 .vscode/
 *.iml
-

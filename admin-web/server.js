@@ -10,7 +10,6 @@ const userRoutes = require('./src/routes/userRoutes');
 const vocabularyRoutes = require('./src/routes/vocabularyRoutes');
 const historyRoutes = require('./src/routes/historyRoutes');
 const languageRoutes = require('./src/routes/languageRoutes');
-const settingsRoutes = require('./src/routes/settingsRoutes');
 
 const app = express();
 
@@ -45,7 +44,6 @@ app.use('/', userRoutes);
 app.use('/', vocabularyRoutes);
 app.use('/', historyRoutes);
 app.use('/', languageRoutes);
-app.use('/', settingsRoutes);
 
 // Nếu token hết hạn / bị từ chối bởi backend (401/403), đẩy về trang login
 app.use((err, req, res, next) => {

@@ -17,6 +17,8 @@ Requires Flutter SDK 3.3+ and the [backend](../backend) running. Set the API add
 |---|---|
 | Translation | Google ML Kit on device; language packs download once |
 | Speech to text | Vosk on device (Android only); models resolved from device, then backend, then built-in defaults |
+| Live voice translation | Partial (still-being-spoken) sentences are translated as you talk; the final sentence usually hits an in-memory cache |
+| Smart glasses | Connect Brilliant Labs Frame over Bluetooth LE (top-bar glasses button); every translation, spoken or typed, is pushed to the glasses display |
 | Text to speech | System TTS engine via `flutter_tts` |
 | Vocabulary and flashcards | Save words from translations, system word bank, pronunciation audio |
 | History | Text, speech and conversation entries; voice sessions show turns, timings and an AI summary |
@@ -31,9 +33,16 @@ lib/
 ├── main.dart
 ├── core/          # api client, session, local store, sync queue, backend status, built-in models, theme
 ├── models/        # User, Language, Vocabulary, History, AIConversation, ModelConfig
-├── services/      # one service per backend module + translation, Vosk, offline packs
+├── services/      # one service per backend module + translation, Vosk, offline packs, frame_service (smart glasses over BLE)
 ├── providers/     # auth state (Provider)
-└── screens/       # splash, home, auth, translate, ai, vocabulary, history, profile, models
+├── screens/       # splash, home, auth, translate, ai, vocabulary, history, profile, models
+└── widgets/       # brand mark, connection banner, word tools, frame_connect_sheet (glasses pairing UI)
 ```
 
-Platform notes (iOS simulator architecture, Vosk on iOS, permissions) are in [`../docs/engineering-notes.md`](../docs/engineering-notes.md).
+## Tests
+
+```bash
+flutter test     # diacritic removal and line wrapping for the glasses display
+```
+
+Platform notes (iOS simulator architecture, Vosk on iOS, smart-glasses BLE) are in [`../docs/engineering-notes.md`](../docs/engineering-notes.md).

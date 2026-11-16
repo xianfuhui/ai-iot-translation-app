@@ -4,6 +4,10 @@
 <dict>
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
+	<key>NSBluetoothAlwaysUsageDescription</key>
+	<string>Dùng Bluetooth để kết nối kính phiên dịch và hiển thị bản dịch trên kính.</string>
+	<key>NSBluetoothPeripheralUsageDescription</key>
+	<string>Dùng Bluetooth để kết nối kính phiên dịch và hiển thị bản dịch trên kính.</string>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
