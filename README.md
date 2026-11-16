@@ -29,37 +29,39 @@ Lingua translates text and speech **on the device** (no network needed after a o
 
 ## 📸 Screenshots
 
-### Mobile app (Android)
+### Mobile app
 
-Android screens from the clickable UI prototype in [`docs/prototype/`](docs/prototype/).
+Screens rendered from the Flutter source (`mobile/lib`): same theme tokens, strings and layout. They are mockups, not device captures. Voice capture and the glasses link need a real microphone and hardware, so those screens are simulated.
 
-| Translate | Save a word | AI assistant | Vocabulary |
+![Mobile app overview](docs/images/mobile/overview.png)
+
+| Splash | Sign in | Register | Translate |
 |---|---|---|---|
-| ![Translate](docs/images/android-01-translate.png) | ![Save word](docs/images/android-02-save-word.png) | ![AI](docs/images/android-03-ai-assistant.png) | ![Vocabulary](docs/images/android-04-vocabulary.png) |
+| ![Splash](docs/images/mobile/01-splash.png) | ![Sign in](docs/images/mobile/02-login.png) | ![Register](docs/images/mobile/03-register.png) | ![Translate](docs/images/mobile/04-translate.png) |
 
-| Flashcard | Profile | Sign in |
-|---|---|---|
-| ![Flashcard](docs/images/android-05-flashcard.png) | ![Profile](docs/images/android-06-profile.png) | ![Login](docs/images/android-07-login.png) |
+| Live voice translation | Language picker | History | Select words to save |
+|---|---|---|---|
+| ![Live voice translation](docs/images/mobile/05-translate-voice-live.png) | ![Language picker](docs/images/mobile/06-language-picker.png) | ![History](docs/images/mobile/07-history.png) | ![Select words to save](docs/images/mobile/08-history-select-words.png) |
 
-### Live voice translation (simulated)
+| Conversation detail | AI coach (empty) | AI coach (chat) | AI (guest lock) |
+|---|---|---|---|
+| ![Conversation detail](docs/images/mobile/09-conversation-detail.png) | ![AI coach (empty)](docs/images/mobile/10-ai-empty.png) | ![AI coach (chat)](docs/images/mobile/11-ai-chat.png) | ![AI (guest lock)](docs/images/mobile/12-ai-guest-lock.png) |
 
-Voice capture needs a real microphone, so these two screens are **simulated mockups** rendered from the app's actual UI strings and theme ([source](docs/prototype/android-voice-glasses-mockup.html)).
+| My vocabulary | System vocabulary | Add word | Flashcard (front) |
+|---|---|---|---|
+| ![My vocabulary](docs/images/mobile/13-vocabulary-my.png) | ![System vocabulary](docs/images/mobile/14-vocabulary-system.png) | ![Add word](docs/images/mobile/15-add-word-dialog.png) | ![Flashcard (front)](docs/images/mobile/16-flashcard-front.png) |
 
-| While speaking: live partial translation | Finished session: turns, timings, AI summary |
-|---|---|
-| ![Voice listening](docs/images/android-voice-01-listening.png) | ![Voice session](docs/images/android-voice-02-session.png) |
+| Flashcard (back) | Profile | Profile (guest) | Offline packs |
+|---|---|---|---|
+| ![Flashcard (back)](docs/images/mobile/17-flashcard-back.png) | ![Profile](docs/images/mobile/18-profile.png) | ![Profile (guest)](docs/images/mobile/19-profile-guest.png) | ![Offline packs](docs/images/mobile/20-offline-packs.png) |
 
 ### Smart glasses: Brilliant Labs Frame (simulated)
 
-Also simulated (no glasses attached). The text layout on the glasses re-implements `FrameService.wrapForFrame` and `removeDiacritics`.
+Simulated (no glasses attached). The text layout on the glasses re-implements `FrameService.wrapForFrame` and `removeDiacritics`.
 
 | 1. Scan for glasses | 2. Connected: settings and test |
 |---|---|
-| ![Scan](docs/images/android-glasses-01-scan.png) | ![Connected](docs/images/android-glasses-02-connected.png) |
-
-**What the wearer sees:** the phone while speaking (left) and the 640×400 glasses display (right).
-
-![Glasses live view](docs/images/android-glasses-03-live-view.png)
+| ![Scan](docs/images/mobile/21-glasses-scan.png) | ![Connected](docs/images/mobile/22-glasses-connected.png) |
 
 ### Admin console
 
@@ -77,7 +79,7 @@ Real screenshots of `admin-web` running against the real backend, loaded with th
 |---|---|
 | ![History](docs/images/admin-05-history.png) | ![Languages](docs/images/admin-06-languages-models.png) |
 
-The database diagram is in [Architecture](#-architecture).
+The data model is in [Architecture](#-architecture).
 
 ## 🛠 Tech Stack
 
@@ -110,11 +112,11 @@ Flutter app ──Bluetooth LE──▶ Brilliant Labs Frame (live translation s
 - **Robustness:** singleton connection that survives tab changes, auto-reconnect to the last device (never prompts for permissions at startup), MTU negotiation, writes paced to avoid flooding BLE.
 - **Tests:** `mobile/test/frame_service_test.dart` covers diacritic removal and line wrapping.
 
-### Database design
+### Data model
 
-![Database schema](docs/db-schema.png)
+![Data model](docs/data-model.png)
 
-*Generated with MongoDB Compass from the live database. Solid edges are `ObjectId` references; `languages` is referenced softly by code (`"en"`, `"vi"`, …).*
+*Drawn from `backend/src/models` and the `$jsonSchema` validators in `backend/scripts/sync-db.js` (source: [`docs/mockup-source/build_data_model.py`](docs/mockup-source/build_data_model.py)). Solid edges are `ObjectId` references to `users`; dashed edges are soft references by language code (`"en"`, `"vi"`, …) to `languages.code`.*
 
 | Collection | Purpose | Key design decision |
 |---|---|---|
@@ -152,7 +154,7 @@ ai-translation-app/
 ├── mobile/       # Flutter client (incl. smart-glasses BLE service)
 ├── backend/      # REST API, seed scripts, DB validators
 ├── admin-web/    # Admin dashboard (EJS)
-└── docs/         # DB diagram, UI prototypes and mockups, screenshots, engineering notes
+└── docs/         # Data model diagram, mobile mockups, screenshots, engineering notes
 ```
 
 ## 🚀 Getting Started
@@ -216,6 +218,6 @@ Demo accounts (local seed only): `admin@example.com` / `Admin@123` (admin), `use
 
 - Further reading: [Backend API reference](backend/README.md) · [Admin console](admin-web/README.md) · [Mobile app](mobile/README.md) · [Engineering notes](docs/engineering-notes.md)
 - Vosk speech recognition is Android-only; iOS uses typed input.
-- The voice and smart-glasses screenshots are simulated (they need a microphone and hardware); everything else was captured from the running admin web or the UI prototype.
+- The mobile screens are mockups rendered from the Flutter source (voice and smart glasses need a microphone and hardware); the admin screenshots were captured from the running admin web.
 - Run the glasses unit tests with `cd mobile && flutter test`.
 - Possible next steps: record a demo video on real glasses, support other BLE displays, OpenAPI/Postman collection, automated API tests, an admin page for the Gemini key, charts for registration trends in the admin dashboard.
