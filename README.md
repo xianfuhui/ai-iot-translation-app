@@ -33,8 +33,6 @@ Lingua translates text and speech **on the device** (no network needed after a o
 
 Screens rendered from the Flutter source (`mobile/lib`): same theme tokens, strings and layout. They are mockups, not device captures. Voice capture and the glasses link need a real microphone and hardware, so those screens are simulated.
 
-![Mobile app overview](docs/images/mobile/overview.png)
-
 | Splash | Sign in | Register | Translate |
 |---|---|---|---|
 | ![Splash](docs/images/mobile/01-splash.png) | ![Sign in](docs/images/mobile/02-login.png) | ![Register](docs/images/mobile/03-register.png) | ![Translate](docs/images/mobile/04-translate.png) |
@@ -62,6 +60,10 @@ Simulated (no glasses attached). The text layout on the glasses re-implements `F
 | 1. Scan for glasses | 2. Connected: settings and test |
 |---|---|
 | ![Scan](docs/images/mobile/21-glasses-scan.png) | ![Connected](docs/images/mobile/22-glasses-connected.png) |
+
+**What the wearer sees:** the Frame has a single lens with a 640×400 display. The subtitles are laid out with the same rules as `FrameService` (4 lines max, 24 character units per line, diacritics stripped) ([source](docs/mockup-source/build_glasses_view.py)).
+
+![Single-lens glasses view](docs/images/mobile/23-glasses-lens.png)
 
 ### Admin console
 
